@@ -1,0 +1,217 @@
+<h2>¿Qué tipo de consulta de autobus deseas realizar?</h2>
+<form id="elegir" *ngIf="!submitted" (ngSubmit)="onSubmit(consultaForm.value.bus)" #consultaForm="ngForm" method="post">
+  <div>
+    <h4>
+      <span>Paso de linea en tiempo real</span>
+      <span><img (click)="showRadioInput($event)" src="../../assets/images/add.svg" alt="imagen extender" width="20" height="20" /></span>
+    </h4>
+    <div [hidden]="true">
+      <div>
+        <label for="lineaYParada">Por Línea y Parada</label>
+        <input type="radio" name="bus" id="lineaYParada" value="lYP" ngModel>
+      </div>
+      <div>
+        <label for="parada">Por Parada</label>
+        <input type="radio" name="bus" id="parada" value="p" ngModel>
+      </div>
+    </div>
+  </div>
+  <div>
+    <h4>
+      <span>Recorridos</span>
+      <span><img (click)="showRadioInput($event)" src="../../assets/images/add.svg" alt="imagen extender" width="20" height="20" /></span>
+    </h4>
+    <div [hidden]="true">
+      <div>
+        <label for="recorrido">Recorrido de una línea</label>
+        <input type="radio" name="bus" id="recorrido" value="r" ngModel>
+      </div>
+    </div>
+  </div>
+  <div>
+    <h4>
+      <span>Paradas</span>
+      <span><img (click)="showRadioInput($event)" src="../../assets/images/add.svg" alt="imagen extender" width="20" height="20" /></span>
+    </h4>
+    <div [hidden]="true">
+      <div>
+        <label for="paradasLineaBus">Paradas de una línea de bus</label>
+        <input type="radio" name="bus" id="paradasLineaBus" value="pLB" ngModel>
+      </div>
+      <div>
+        <label for="paradasBus">Paradas de bus</label>
+        <input type="radio" name="bus" id="paradasBus" value="pB" ngModel>
+      </div>
+    </div>
+  </div>
+  <div>
+    <h4>
+      <span>Horarios</span>
+      <span><img (click)="showRadioInput($event)" src="../../assets/images/add.svg" alt="imagen extender" width="20" height="20" /></span>
+    </h4>
+    <div [hidden]="true">
+      <div>
+        <label for="horariosBus">Horario de una línea de bus</label>
+        <input type="radio" name="bus" id="horariosBus" value="hB" ngModel>
+      </div>
+      <div>
+        <label for="horarioBusParada">Horario de un bus a nivel de parada</label>
+        <input type="radio" name="bus" id="horarioBusParada" value="hBP" ngModel>
+      </div>
+      <div>
+        <label for="horasPasoHorarioLineaBus">Horas de paso por parada según horario de la línea</label>
+        <input type="radio" name="bus" id="horasPasoHorarioLineaBus" value="hPHLB" ngModel>
+      </div>
+    </div>
+  </div>
+  <div>
+    <h4>
+      <span>Paradas más cercanas(1km)</span>
+      <span><img (click)="showRadioInput($event)" src="../../assets/images/add.svg" alt="imagen extender" width="20" height="20" /></span>
+    </h4>
+    <div [hidden]="true">
+      <div>
+        <label for="paradasCercanas">Paradas cercanas</label>
+        <input type="radio" name="bus" id="paradasCercanas" value="pC" ngModel>
+      </div>
+    </div>
+  </div>
+  <div>
+    <input type="submit" value="Elegir">
+  </div>
+</form>
+<form id="show" *ngIf="submitted" (ngSubmit)="onShowData(dataForm.value)" #dataForm="ngForm" method="post">
+  <!-- <div *ngIf="tiempoRealParada">
+    <label for="parada">Parada</label>
+    <input type="text" name="parada" id="parada" ngModel />
+  </div> -->
+  <div *ngIf="tiempoRealParada || tiempoRealLineaYParada || horasPasoHorarioLineaBus || horarioBusParada">
+    <div class="select">
+      <label for="parada">Parada</label>
+      <select name="parada" id="parada" ngModel (ngModelChange)="setLine($event)">
+        <option value="0" selected>Elegir parada</option>
+        <option *ngFor="let parada of paradas | orderBy: 'nombre'" value="{{parada.codigo}}">{{parada.nombre}}</option>
+      </select>
+      <!--<input type="text" name="parada" id="parada" ngModel /> -->
+    </div>
+  </div>
+  <div
+    *ngIf="tiempoRealLineaYParada || recorridoLinea || paradasLineaBus || horariosBus || horarioBusParada || horasPasoHorarioLineaBus">
+    <div class="select">
+      <label for="linea">Línea</label>
+      <!--<select name="linea" id="linea" ngModel >
+        <option value="0" selected>Elegir linea</option>
+        <option *ngFor="let line of lines" value="{{line}}">{{line}}</option>
+      </select>-->
+      <input type="text" name="linea" id="linea" list="lines" ngModel />
+      <datalist id="lines">
+        <option value="0" selected>Elegir linea</option>
+        <option *ngFor="let line of lines" value="{{line}}">{{line}}</option>
+      </datalist>
+    </div>
+  </div>
+  <div *ngIf="paradasCercanas">
+    <div class="cercanas">
+      <h4>Cómo obtener las coordenadas de un lugar</h4>
+      <ol>
+        <li>Abre Google Maps en tu computadora. </li>
+        <li>Haz clic con el botón derecho en el lugar o en el área del mapa.</li>
+        <li>Se abrirá una ventana emergente. Puedes encontrar tu latitud y longitud en formato decimal en la parte
+          superior.</li>
+        <li>Para copiar las coordenadas automáticamente, haz clic con el botón izquierdo en la latitud y la longitud.
+        </li>
+      </ol>
+      <div>
+        <div>
+          <label for="latitud">Latitud(nº más grande) </label>
+          <input type="text" name="latitud" id="latitud" ngModel />
+        </div>
+        <div>
+          <label for="longitud">Longitud(nº más pequeño) </label>
+          <input type="text" name="longitud" id="longitud" ngModel />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <input type="submit" value="Mostrar datos" />
+  </div>
+</form>
+<div *ngIf="submitted">
+  <button class="boton" (click)="choose()">Volver a elegir</button>
+</div>
+<div class="tiempo-real">
+  <div *ngFor="let tr of tiempoReal">
+    <p>
+      Línea: {{tr.linea}}
+    </p>
+    <p>
+      Llegada: {{tr.texto}}
+    </p>
+    <hr/>
+    <p>
+      Tiempo estimado de llegada en segundos: {{tr.tiempoSegundos}}
+    </p>
+    <hr/>
+    <p>
+      Tiempo estimado de llegada en minutos: {{tr.tiempoMinutos}}
+    </p>
+  </div>
+</div>
+<div>
+  <div *ngFor="let bus of buses">
+    <p>
+      {{bus.direccion}}
+    </p>
+    <p>
+      {{bus.linea}}
+    </p>
+    <p>
+      {{bus.parada}}
+    </p>
+    <p>
+      {{bus.distrito}}
+    </p>
+    <p>
+      {{bus.nombreVia}}
+    </p>
+    <p>
+      {{bus.nombreParada}}
+    </p>
+    <p>
+      {{bus.sentido}}
+    </p>
+  </div>
+</div>
+<div *ngIf="paradas1km.length > 0">
+  <div>
+    <div class="map" leaflet [leafletOptions]="options" [leafletLayers]="layers">
+    </div>
+  </div>
+  <div class="container cards">
+    <div class="paradas card" id="p{{parada.codigo}}" *ngFor="let parada of paradas1km; let i = index;">
+        <div class="card__image">
+          <a href="#">
+            <div class="map2" leaflet [leafletOptions]="namesOptions[i]" [leafletLayer]="names[i]">
+            </div>
+          </a>
+        </div>
+        <div class="card__overlay">
+          <div class="card__header">
+            <svg class="card__arc" xmlns="http://www.w3.org/2000/svg">
+              <path />
+            </svg>
+            <div class="card__header-text">
+              <h4 class="card__title">Parada: {{parada.nombre}}</h4>
+            </div>
+          </div>
+          <p class="card__description">Dirección: {{parada.direccion}}</p>
+          <p class="card__description">Distrito: {{parada.distrito}}</p>
+          <p class="card__description">Líneas: {{parada.lineas}}</p>
+        </div>
+      </div>
+    </div>
+</div>
+<div *ngIf="error">
+  <p>{{error}}</p>
+</div>

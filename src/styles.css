@@ -1,0 +1,20 @@
+/* You can add global styles to this file, and also import other style files */
+
+.map .leaflet-popup .leaflet-popup-close-button {
+  display: none;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-image: url(./assets/images/barcelona2.png);
+  background-size: 30%;
+  background-repeat: no-repeat;
+  background-position-x: center;
+  background-position-y: center;
+  background-attachment: fixed;
+}
