@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, HostListener, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { map } from 'rxjs/operators';
 import { Bus } from '../models/Bus';
 import { Parada } from '../models/parada';
@@ -12,7 +12,7 @@ import { ConsultaService } from '../services/consulta.service';
   templateUrl: './consulta.component.html',
   styleUrls: ['./consulta.component.css']
 })
-export class ConsultaComponent implements OnInit, AfterViewInit {
+export class ConsultaComponent implements OnInit {
 
   /**
    * Listener para todo el documento, que cuando haga click en cualquier parte, en este
@@ -32,6 +32,7 @@ export class ConsultaComponent implements OnInit, AfterViewInit {
     }
   }
 
+  // identificadores tmb
   app_id:string = '';
   app_key:string = '';
 
@@ -91,19 +92,6 @@ export class ConsultaComponent implements OnInit, AfterViewInit {
     ).subscribe(x => x.map((resp: any) => {
       this.paradas.push(new Parada(resp.properties.NOM_PARADA, resp.properties.CODI_PARADA.toString()));
     }));
-  }
-
-  ngAfterViewInit(): void {
-      // consigue el ancho mayor de los h4
-    /*let h4 = this.elementRef.nativeElement.querySelectorAll('h4');
-    console.log(h4);
-    h4 = Array.from(h4);
-    let maxWidth = h4.map((elem: any) => {
-      return elem.firstChild.clientWidth;
-    }).reduce((a: any, b: any) => {
-      return Math.max(a, b);
-    });
-    this.width = maxWidth+'px';*/
   }
 
   /**
