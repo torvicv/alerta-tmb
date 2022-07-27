@@ -20,4 +20,8 @@ export class ConsultaService {
     }
 
   }
+
+  allStopBus(data: any) {
+
+  }
 }

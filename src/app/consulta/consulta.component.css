@@ -141,7 +141,7 @@ body {
 }
 
 .card:hover .card__header {
-  transform: translateY(0);
+  transform: translateY(-25%);
 }
 
 .card__thumb {
@@ -322,7 +322,7 @@ h2 {
 }
 
 /* select */
-select, #linea {
+select, #linea, #distrito {
   -webkit-appearance:none;
   -moz-appearance:none;
   -ms-appearance:none;
@@ -339,7 +339,7 @@ select, #linea {
   background: rgba(26, 60, 136, 0.7);
   font-family: 'Open Sans', sans-serif;
 }
-select::-ms-expand, #linea::-ms-expand {
+select::-ms-expand, #linea::-ms-expand, #distrito::-ms-expand {
   display: none;
 }
 .select {

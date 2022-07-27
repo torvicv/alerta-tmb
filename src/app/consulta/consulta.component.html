@@ -42,6 +42,10 @@
         <label for="paradasBus">Paradas de bus</label>
         <input type="radio" name="bus" id="paradasBus" value="pB" ngModel>
       </div>
+      <div>
+        <label for="paradasBusDistrito">Paradas de bus de un distrito</label>
+        <input type="radio" name="bus" id="paradasBusDistrito" value="pBD" ngModel>
+      </div>
     </div>
   </div>
   <div>
@@ -133,6 +137,16 @@
       </div>
     </div>
   </div>
+  <div *ngIf="paradasBusDistrito">
+    <div class="select">
+      <label for="distrito">Distrito</label>
+      <input type="text" name="distrito" id="distrito" list="districts" ngModel />
+      <datalist id="districts">
+        <option value="0" selected>Elegir distrito</option>
+        <option *ngFor="let distrito of distritos" value="{{distrito}}">{{distrito}}</option>
+      </datalist>
+    </div>
+  </div>
   <div>
     <input type="submit" value="Mostrar datos" />
   </div>
@@ -158,8 +172,46 @@
     </p>
   </div>
 </div>
-<div>
-  <div *ngFor="let bus of buses">
+
+<div *ngIf="road">
+  <h3>{{queryTitle}}</h3>
+  <div>
+    <div class="map" leaflet [leafletOptions]="options" (leafletMapReady)="onMapReady($event)" [leafletLayers]="layers">
+    </div>
+  </div>
+</div>
+<div *ngIf="buses.length > 0">
+  <h3>{{queryTitle}}</h3>
+  <div>
+    <div class="map" leaflet [leafletOptions]="options" (leafletMapReady)="onMapReady($event)" [leafletLayers]="layers">
+    </div>
+  </div>
+  <div class="container cards">
+    <div class="paradas card" id="p{{parada.parada}}" *ngFor="let parada of buses; let i = index;">
+        <div class="card__image">
+          <a href="#">
+            <div class="map2" leaflet [leafletOptions]="namesOptions[i]" [leafletLayer]="names[i]">
+            </div>
+          </a>
+        </div>
+        <div class="card__overlay">
+          <div class="card__header">
+            <svg class="card__arc" xmlns="http://www.w3.org/2000/svg">
+              <path />
+            </svg>
+            <div class="card__header-text">
+              <h4 class="card__title">Parada: {{parada.nombreParada}}</h4>
+            </div>
+          </div>
+          <p class="card__description">Dirección: {{parada.direccion}}</p>
+          <p class="card__description" *ngIf="!paradasBusDistrito">Distrito: {{parada.distrito}}</p>
+          <p class="card__description" *ngIf="parada.linea">Líneas: {{parada.linea}}</p>
+          <p class="card__description">Nombre vía: {{parada.nombreVia}}</p>
+          <p class="card__description" *ngIf="parada.sentido">Sentido: {{parada.sentido}}</p>
+        </div>
+    </div>
+  </div>
+  <!--<div *ngFor="let bus of buses">
     <p>
       {{bus.direccion}}
     </p>
@@ -169,7 +221,7 @@
     <p>
       {{bus.parada}}
     </p>
-    <p>
+    <p [hidden]="paradasBusDistrito">
       {{bus.distrito}}
     </p>
     <p>
@@ -181,7 +233,7 @@
     <p>
       {{bus.sentido}}
     </p>
-  </div>
+  </div>-->
 </div>
 <div *ngIf="paradas1km.length > 0">
   <div>
@@ -209,8 +261,31 @@
           <p class="card__description">Distrito: {{parada.distrito}}</p>
           <p class="card__description">Líneas: {{parada.lineas}}</p>
         </div>
-      </div>
     </div>
+  </div>
+</div>
+<div *ngIf="horario">
+  <div class="container cards">
+    <div class="paradas card" id="p{{horario.parada}}">
+        <div class="card__overlay">
+          <div class="card__header">
+            <svg class="card__arc" xmlns="http://www.w3.org/2000/svg">
+              <path />
+            </svg>
+            <div class="card__header-text">
+              <h4 class="card__title">Parada: {{horario.parada}}</h4>
+            </div>
+          </div>
+          <p class="card__description">Dirección: {{horario.direccion}}</p>
+          <p class="card__description">Distrito: {{horario.distrito}}</p>
+          <p class="card__description">Líneas: {{horario.sentido}}</p>
+          <p class="card__description">Líneas: {{horario.via}}</p>
+          <p class="card__description">Líneas: {{horario.diario}}</p>
+          <p class="card__description">Líneas: {{horario.sabado}}</p>
+          <p class="card__description">Líneas: {{horario.festivo}}</p>
+        </div>
+    </div>
+  </div>
 </div>
 <div *ngIf="error">
   <p>{{error}}</p>
