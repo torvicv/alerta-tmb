@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { map } from 'rxjs/operators';
 import { Bus } from '../models/Bus';
@@ -12,6 +12,7 @@ import "leaflet/dist/leaflet.css";
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 import "leaflet-routing-machine";
 import { Horario } from '../models/horario';
+import { LoaderService } from '../services/loader.service';
 declare let L: any;
 
 @Component({
@@ -41,6 +42,8 @@ export class ConsultaComponent implements OnInit {
       event.preventDefault();
     }
   }
+  items = ['Item 1', 'Item 2', 'Item 3', 'Item 4', 'Item 5'];
+  expandedIndex = 0;
 
   // titulo de la consulta
   queryTitle!: string;
@@ -49,6 +52,9 @@ export class ConsultaComponent implements OnInit {
   app_id:string = '';
   app_key:string = '';
 
+  // key de geoapify
+  myApiKey: string = ''
+
   // dataForm = new FormControl('');
   submitted!: boolean;
   tiempoRealParada!: boolean;
@@ -56,12 +62,13 @@ export class ConsultaComponent implements OnInit {
   recorridoLinea!: boolean;
   paradasLineaBus!: boolean;
   paradasBus!: boolean;
-  horariosBus!: boolean;
-  horarioBusParada!: boolean;
+  /*horariosBus!: boolean;
+  horarioBusParada!: boolean;*/
   horasPasoHorarioLineaBus!: boolean;
   paradasCercanas!: boolean;
   paradasBusDistrito!: boolean;
   road!: boolean;
+  checkAllStopBus!: boolean;
 
   // propiedades mapa
   options = {};
@@ -86,19 +93,21 @@ export class ConsultaComponent implements OnInit {
   paradas1km: Parada[] = [];
   district!: string;
 
-  constructor(private http: HttpClient, private elementRef: ElementRef, private service: ConsultaService) {
+  constructor(private http: HttpClient, private elementRef: ElementRef,
+    private service: ConsultaService, public loaderService: LoaderService) {
     this.submitted = false;
     this.tiempoRealParada = false;
     this.tiempoRealLineaYParada = false;
     this.recorridoLinea = false;
     this.paradasLineaBus = false;
     this.paradasBus = false;
-    this.horariosBus = false;
-    this.horarioBusParada = false;
+    /*this.horariosBus = false;
+    this.horarioBusParada = false;*/
     this.horasPasoHorarioLineaBus = false;
     this.paradasCercanas = false;
     this.paradasBusDistrito = false;
     this.road = false;
+    this.checkAllStopBus = false;
     this.error = '';
    }
 
@@ -108,7 +117,6 @@ export class ConsultaComponent implements OnInit {
       map(response => JSON.stringify(response)),
       map(response => JSON.parse(response)),
       map(response => response.features),
-      //filter(response => response.)
     ).subscribe(x => {
       let distritos: any[] = [];
       x.map((resp: any) => {
@@ -148,12 +156,12 @@ export class ConsultaComponent implements OnInit {
         case 'pBD':
           this.paradasBusDistrito = true;
           break;
-        case 'hB':
+        /*case 'hB':
           this.horariosBus = true;
           break;
         case 'hBP':
           this.horarioBusParada = true;
-          break;
+          break;*/
         case 'hPHLB':
           this.horasPasoHorarioLineaBus = true;
           break;
@@ -184,6 +192,7 @@ export class ConsultaComponent implements OnInit {
         map(response => JSON.stringify(response)),
         map(response => JSON.parse(response))
       ).subscribe((bus) => {
+        this.queryTitle = 'Tiempo Real por Línea y Parada';
         this.tiempoReal.push(new TiempoReal(data.linea, bus.data.ibus[0]['text-ca'], bus.data.ibus[0]['t-in-s'], bus.data.ibus[0]['t-in-min']));
       });
     } else if (this.tiempoRealParada) {
@@ -193,6 +202,7 @@ export class ConsultaComponent implements OnInit {
         map(response => JSON.stringify(response)),
         map(response => JSON.parse(response))
       ).subscribe((bus) => {
+        this.queryTitle = 'Tiempo real por Parada';
         bus.data.ibus.map((b: any) => {
           this.tiempoReal.push(new TiempoReal(b.line, b['text-ca'], b['t-in-s'], b['t-in-min']));
         });
@@ -212,9 +222,10 @@ export class ConsultaComponent implements OnInit {
         map(response => JSON.parse(response))
       ).subscribe({
         next: this.geometryMap.bind(this),
-        error: () => this.handleError('linea')
+        error: () => alert('No tenemos datos de esa línea!!!')
       });
     } else if (this.paradasLineaBus) {
+      this.queryTitle = 'Paradas por Línea';
       // get all bus stops by bus line.
       this.http.get('https://api.tmb.cat/v1/transit/linies/bus/'+data.linea+'/parades?app_id='+this.app_id+'&app_key='+this.app_key)
       .pipe(
@@ -224,7 +235,7 @@ export class ConsultaComponent implements OnInit {
         map(response => JSON.parse(response))
       ).subscribe({
         next: this.featuresMap.bind(this),
-        error: () => this.handleError('linea')
+        error: () => alert('No tenemos datos de esa línea!!!')
       });
     } else if (this.paradasBus) {
       this.http.get('https://api.tmb.cat/v1/transit/parades?app_id='+this.app_id+'&app_key='+this.app_key)
@@ -235,7 +246,7 @@ export class ConsultaComponent implements OnInit {
         map(response => JSON.parse(response))
       ).subscribe({
         next: this.allStopBus.bind(this),
-        error: () => this.handleError('parada')
+        error: () => alert('No tenemos datos de esa parada!!!')
       });
     } else if (this.paradasBusDistrito) {
       if (data.distrito.length > 0) {
@@ -249,14 +260,14 @@ export class ConsultaComponent implements OnInit {
         map(response => JSON.parse(response))
       ).subscribe({
         next: this.allStopBusDristrict.bind(this),
-        error: () => this.handleError('parada')
+        error: () => alert('No tenemos datos de esa línea!!!')
       });
-    } else if (this.horariosBus) {
+    /*} else if (this.horariosBus) {
       this.http.get('https://api.tmb.cat/v1/transit/linies/bus/'+data.linea+'/horaris?app_id='+this.app_id+'&app_key='+this.app_key)
       .subscribe(bus => console.log(bus));
     } else if (this.horarioBusParada) {
       this.http.get('https://api.tmb.cat/v1/transit/linies/bus/'+data.linea+'/parades/'+data.parada+'/horaris?app_id='+this.app_id+'&app_key='+this.app_key)
-      .subscribe(bus => console.log(bus));
+      .subscribe(bus => console.log(bus));*/
     } else if (this.horasPasoHorarioLineaBus) {
       this.http.get('https://api.tmb.cat/v1/transit/linies/bus/'+data.linea+'/parades/'+data.parada+'/horespas?app_id='+this.app_id+'&app_key='+this.app_key)
       .pipe(
@@ -264,7 +275,7 @@ export class ConsultaComponent implements OnInit {
         map(response => JSON.parse(response))
       ).subscribe({
         next: this.horarios.bind(this),
-        error: this.handleError.bind('línea')
+        error: () => alert('No tenemos datos de esa línea!!!')
       });
     } else if (this.paradasCercanas) {
       this.http.get('https://api.tmb.cat/v1/transit/parades?app_id='+this.app_id+'&app_key='+this.app_key)
@@ -273,7 +284,57 @@ export class ConsultaComponent implements OnInit {
         map(response => JSON.stringify(response)),
         // from string to object
         map(response => JSON.parse(response))
-      ).subscribe((paradas) => {
+      ).toPromise()
+      .then((paradas) => {
+        this.queryTitle = 'Paradas cercanas';
+        let stops = paradas.features.filter((parada: any) => {
+          let checkPoints = this.arePointsNear(data.longitud, parada.geometry.coordinates[0], data.latitud,
+            parada.geometry.coordinates[1]);
+          return checkPoints;
+        });
+
+        // console.log(stops);
+        let contador = 0;
+        stops.map((stop: any) => {
+          let stops = [];
+          this.dataMap.push(
+            //{latitude: stop.geometry.coordinates[0], longitude: stop.geometry.coordinates[1], name: stop.properties.NOM_PARADA}
+            marker([stop.geometry.coordinates[1], stop.geometry.coordinates[0]])
+              .bindPopup('Parada: '+stop.properties.NOM_PARADA+'<br/>Distrito: '+stop.properties.NOM_DISTRICTE+'<br/>Dirección: '+stop.properties.ADRECA+'<br><a class="ver" href="/consultar#p'+stop.properties.CODI_PARADA+'">Ver</a>')
+          );
+          let dataSmallMap = {latitud: stop.geometry.coordinates[1],longitud: stop.geometry.coordinates[0]}
+          let layerSmallMap = marker([stop.geometry.coordinates[1], stop.geometry.coordinates[0]]);
+
+          this.dataSmallMap.push(dataSmallMap);
+          this.layerSmallMap.push(layerSmallMap);
+          this.names.push(`layer`+contador);
+          this.namesOptions.push(`option`+contador);
+          stops.push(stop);
+        });
+        return stops;
+      }).then((stops: any) => {
+        let stopsLines = '';
+        stops.map((stop: any) => {
+          this.http.get('https://api.tmb.cat/v1/ibus/stops/'+stop.properties.CODI_PARADA+'?app_id='+this.app_id+'&app_key='+this.app_key)
+          .pipe(
+            map(response => JSON.stringify(response)),
+            map(response => JSON.parse(response))
+          ).subscribe((bus) => {
+            bus.data.ibus.map((b: any) => {
+              stopsLines += b.line + ', '
+            });
+            // console.log(stopsLines);
+            this.paradas1km.push(new Parada(stop.properties.NOM_PARADA, stop.properties.CODI_PARADA,
+              stop.properties.ADRECA, stop.properties.NOM_DISTRICTE, stopsLines));
+          });
+        });
+        for (let i = 0; i < this.dataSmallMap.length; i++) {
+          this.showSmallMap(this.dataSmallMap[i], this.layerSmallMap[i], i);
+        }
+      });
+      this.showMap(data);
+
+      /*.subscribe((paradas) => {
         let stops = paradas.features.filter((parada: any) => {
           let checkPoints = this.arePointsNear(data.longitud, parada.geometry.coordinates[0], data.latitud,
             parada.geometry.coordinates[1]);
@@ -314,8 +375,8 @@ export class ConsultaComponent implements OnInit {
         for (let i = 0; i < this.dataSmallMap.length; i++) {
           this.showSmallMap(this.dataSmallMap[i], this.layerSmallMap[i], i);
         }
-        this.showMap(data);
-      });
+        this.showMap(data);*/
+      //});
     }
   }
 
@@ -383,14 +444,23 @@ export class ConsultaComponent implements OnInit {
     this.recorridoLinea = false;
     this.paradasLineaBus = false;
     this.paradasBus = false;
-    this.horariosBus = false;
-    this.horarioBusParada = false;
+    /*this.horariosBus = false;
+    this.horarioBusParada = false;*/
     this.horasPasoHorarioLineaBus = false;
     this.paradasCercanas = false;
+    this.paradasBusDistrito = false;
     this.road = false;
+    this.checkAllStopBus = false;
     this.tiempoReal = [];
     this.buses = [];
     this.paradas1km = [];
+    this.dataMap = [];
+    this.layerSmallMap = [];
+    this.layers = [];
+    this.layers2 = [];
+    this.dataSmallMap = [];
+    this.namesOptions = [];
+    this.names = [];
   }
 
   /**
@@ -399,10 +469,12 @@ export class ConsultaComponent implements OnInit {
    */
   featuresMap(value: any, check = true) {
     let dataMap: any[] = [];
+    let layerSmallMap: any[] = [];
+    let dataSmallMap: any[] = [];
     if (check) {
       this.options = {
         layers: [
-          tileLayer('https://maps.geoapify.com/v1/tile/osm-carto/{z}/{x}/{y}.png?apiKey=', {
+          tileLayer('https://maps.geoapify.com/v1/tile/osm-carto/{z}/{x}/{y}.png?apiKey='+this.myApiKey, {
             attribution: '&copy; OpenStreetMap contributors'
           }),
         ],
@@ -424,11 +496,16 @@ export class ConsultaComponent implements OnInit {
       let p = bf.properties;
       this.buses.push(new Bus(p.ADRECA, p.NOM_LINIA, p.CODI_PARADA, p.NOM_DISTRICTE,
         p.NOM_VIA, p.NOM_PARADA, p.DESTI_SENTIT));
+      layerSmallMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]]));
+      dataSmallMap.push({latitud: bf.geometry.coordinates[1],longitud: bf.geometry.coordinates[0]})
     });
     // this.route = [];
     // this.route = [routeAnada, routeTornada];
     // this.route = this.route.flatMap((x) => x);
     this.layers = dataMap;
+    for (let i = 0; i < dataSmallMap.length; i++) {
+      this.showSmallMap(dataSmallMap[i], layerSmallMap[i], i);
+    }
   }
 
   /**
@@ -440,7 +517,7 @@ export class ConsultaComponent implements OnInit {
     let route: any[] = [];
     this.options = {
       layers: [
-        tileLayer('https://maps.geoapify.com/v1/tile/osm-carto/{z}/{x}/{y}.png?apiKey=', {
+        tileLayer('https://maps.geoapify.com/v1/tile/osm-carto/{z}/{x}/{y}.png?apiKey='+this.myApiKey, {
           attribution: '&copy; OpenStreetMap contributors'
         }),
       ],
@@ -459,7 +536,7 @@ export class ConsultaComponent implements OnInit {
     this.route = route;
     this.route = this.route.flatMap((x) => x);
     this.layers = this.layers;
-    this.road = true;
+    // this.road = true;
     this.queryTitle = 'Recorrido línea: ';
   }
 
@@ -469,7 +546,11 @@ export class ConsultaComponent implements OnInit {
    */
   handleError(error: any) {
     console.log(error);
-    this.error = "No tenemos datos de esa "+ error +"!!!";
+    if (error instanceof HttpErrorResponse) {
+      this.error = error.message;
+    } else {
+      this.error = "No tenemos datos de esa "+ error +"!!!";
+    }
   }
 
   /**
@@ -501,7 +582,6 @@ export class ConsultaComponent implements OnInit {
    * @param map , tipo Map, mapa.
    */
   onMapReady(map: Map) {
-    const myAPIKey = "";
     var waypoints!: any;
     // creamos un string con todos los waypoints encadenados.
     for (let i = 0; i < this.route.length; i++) {
@@ -511,7 +591,7 @@ export class ConsultaComponent implements OnInit {
     if (waypoints != undefined && waypoints.length > 0) {
       waypoints = waypoints.replace(/undefined/g, '');
       waypoints = waypoints.replace(/\|$/, '');
-      const url = `https://api.geoapify.com/v1/routing?waypoints=${waypoints}&mode=bus&details=instruction_details&apiKey=${myAPIKey}`;
+      const url = `https://api.geoapify.com/v1/routing?waypoints=${waypoints}&mode=bus&details=instruction_details&apiKey=${this.myApiKey}`;
       fetch(url).then(res => res.json()).then(result => {
           console.log(result);
           L.geoJSON(result, {
@@ -544,6 +624,7 @@ export class ConsultaComponent implements OnInit {
    */
   allStopBus(data: any) {
     this.queryTitle = 'Paradas de Bus - Todas';
+    this.checkAllStopBus = true;
     this.layers = this.dataMap;
     this.options = {
       layers: [
@@ -554,15 +635,27 @@ export class ConsultaComponent implements OnInit {
       zoom: 11,
       center: latLng([ 41.3879, 2.16992 ])
     };
+    let dataSmallMap: any[] = [];
+    let layerSmallMap: any[] = [];
     data.features.map((bf: any) => {
       this.dataMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]])
       .bindPopup('Parada: '+bf.properties.NOM_PARADA+'<br/>Distrito: '+bf.properties.NOM_DISTRICTE+'<br/>Dirección: '+bf.properties.ADRECA+'<br><a class="ver" href="/consultar#p'+bf.properties.CODI_PARADA+'">Ver</a>'))
-      let p = bf.properties;
+      /*let p = bf.properties;
       this.buses.push(new Bus(p.ADRECA, p.NOM_LINIA, p.CODI_PARADA, p.NOM_DISTRICTE,
         p.NOM_VIA, p.NOM_PARADA, p.DESTI_SENTIT));
+      layerSmallMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]]));
+      dataSmallMap.push({latitud: bf.geometry.coordinates[1],longitud: bf.geometry.coordinates[0]})*/
     });
+    this.layers = this.dataMap;
+    /*for (let i = 0; i < dataSmallMap.length; i++) {
+      this.showSmallMap(dataSmallMap[i], layerSmallMap[i], i);
+    }*/
   }
 
+  /**
+   * Consigue todas las paradas de un distrito.
+   * @param data , tipo any.
+   */
   allStopBusDristrict(data: any) {
     this.queryTitle = 'Paradas de Bus - Distrito: '+this.district;
     this.layers = this.dataMap;
@@ -595,8 +688,12 @@ export class ConsultaComponent implements OnInit {
     }
   }
 
+  /**
+   * Consigue los datos del apartado horarios.
+   * @param value , tipo any.
+   */
   private horarios(value: any) {
-    console.log(value);
+    this.queryTitle = 'Horarios';
     let direccion = '';
     let parada = '';
     let via = '';
@@ -605,30 +702,72 @@ export class ConsultaComponent implements OnInit {
     let diarios = '';
     let sabado = '';
     let festivos = '';
+    let contadorFL = 0;
+    let contadorDL = 0;
+    let contadorDIF = 0;
+    let data = {latitud: value.features[0].geometry.coordinates[1], longitud: value.features[0].geometry.coordinates[0]}
     value.features.map((horario: any) => {
       let prop = horario.properties;
       let horas: string = prop.LITERAL;
+      horas = horas.replace('#FROM#', 'DESDE');
+      horas = horas.replace('#TO#', 'A');
+      horas = horas.replace('#EVERY#', 'CADA');
+      horas = horas.replace('#MINUTES#', 'MINUTOS');
       direccion = prop.ADRECA;
       parada = prop.NOM_PARADA;
       via = prop.NOM_VIA;
       distrito = prop.NOM_DISTRICTE;
       sentido = prop.DESC_SENTIT;
-      diarios = '';
-      sabado = '';
-      festivos = '';
+      let feinersLength: any = value.features.filter((fL: any) => {
+        return fL.properties.DESC_TIPUS_DIA.toLowerCase() ===  'feiners';
+      });
+      let dissabtesLength: any = value.features.filter((dL: any) => {
+        return dL.properties.DESC_TIPUS_DIA.toLowerCase() ===  'dissabtes';
+      });
+      let festiusLength: any = value.features.filter((fL: any) => {
+        return fL.properties.DESC_TIPUS_DIA.toLowerCase() ===  'festius i diumenges';
+      });
       if (prop.DESC_TIPUS_DIA.toLowerCase() === 'feiners') {
-        diarios += horas;
+        if (contadorFL === feinersLength.length-1) {
+          diarios += horas;
+        } else {
+          diarios += horas + ' - ';
+        }
+        contadorFL++;
       } else if (prop.DESC_TIPUS_DIA.toLowerCase() === 'dissabtes') {
-        sabado += horas;
+        if (contadorDL === dissabtesLength.length-1) {
+          sabado += horas;
+        } else {
+          sabado += horas + ' - ';
+        }
+        contadorDL++;
       } else if (prop.DESC_TIPUS_DIA.toLowerCase() === 'festius i diumenges') {
-        festivos += horas;
-      }
-       else if (prop.DESC_TIPUS_DIA.toLowercase() === 'dissabtes') {
-        sabado += prop.HORARI;
+        if (contadorDIF === festiusLength.length-1) {
+          festivos += horas;
+        } else {
+          festivos += horas + ' - ';
+        }
+        contadorDIF++;
       }
     });
+    let dataSmallMap: any[] = [];
+    let layerSmallMap: any[] = [];
+    this.options = {};
+    this.options = {
+      layers: [
+        tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        })
+      ],
+      zoom: 16,
+      center: latLng([ data.latitud, data.longitud ])
+    };
+    this.layers = [];
+    this.layers.push(marker([data.latitud, data.longitud]));
     this.horario = new Horario(direccion, parada, distrito, via, sentido, diarios, sabado, festivos);
-    console.log(this.horario);
+    dataSmallMap.push({latitud: data.latitud,longitud: data.longitud});
+    layerSmallMap.push(marker([data.latitud, data.longitud]));
+    this.showSmallMap(dataSmallMap[0], layerSmallMap[0], 0);
   }
 
 }

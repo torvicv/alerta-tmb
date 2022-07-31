@@ -1,6 +1,168 @@
 <h2>¿Qué tipo de consulta de autobus deseas realizar?</h2>
 <form id="elegir" *ngIf="!submitted" (ngSubmit)="onSubmit(consultaForm.value.bus)" #consultaForm="ngForm" method="post">
-  <div>
+  <cdk-accordion class="example-accordion">
+    <cdk-accordion-item
+      #accordionItem0="cdkAccordionItem"
+      class="example-accordion-item"
+      role="button"
+      tabindex="0"
+      [attr.id]="'accordion-header-0'"
+      [attr.aria-expanded]="accordionItem0.expanded"
+      [attr.aria-controls]="'accordion-body-0'">
+      <h4 class="example-accordion-item-header" (click)="accordionItem0.toggle()">
+        <span>Paso de linea en tiempo real</span>
+        <span class="example-accordion-item-description">
+          <img *ngIf="!accordionItem0.expanded" src="../../assets/images/add.svg" alt="imagen extender" width="20" height="20" />
+          <img *ngIf="accordionItem0.expanded" src="../../assets/images/less.svg" alt="imagen extender" width="20" height="20" />
+          <!-- Click to {{ accordionItem0.expanded ? 'close' : 'open' }} -->
+        </span>
+      </h4>
+      <div
+        class="example-accordion-item-body"
+        role="region"
+        [style.display]="accordionItem0.expanded ? '' : 'none'"
+        [attr.id]="'accordion-body-0'"
+        [attr.aria-labelledby]="'accordion-header-0'">
+        <div>
+          <label for="lineaYParada">Por Línea y Parada</label>
+          <input type="radio" name="bus" id="lineaYParada" value="lYP" ngModel>
+        </div>
+        <div>
+          <label for="parada">Por Parada</label>
+          <input type="radio" name="bus" id="parada" value="p" ngModel>
+        </div>
+      </div>
+    </cdk-accordion-item>
+    <cdk-accordion-item
+      #accordionItem1="cdkAccordionItem"
+      class="example-accordion-item"
+      role="button"
+      tabindex="0"
+      [attr.id]="'accordion-header-1'"
+      [attr.aria-expanded]="accordionItem1.expanded"
+      [attr.aria-controls]="'accordion-body-1'">
+      <h4 class="example-accordion-item-header" (click)="accordionItem1.toggle()">
+        <span>Recorridos</span>
+        <span class="example-accordion-item-description">
+          <img *ngIf="!accordionItem1.expanded" src="../../assets/images/add.svg" alt="imagen extender" width="20" height="20" />
+          <img *ngIf="accordionItem1.expanded" src="../../assets/images/less.svg" alt="imagen extender" width="20" height="20" />
+          <!-- Click to {{ accordionItem0.expanded ? 'close' : 'open' }} -->
+        </span>
+      </h4>
+      <div
+        class="example-accordion-item-body"
+        role="region"
+        [style.display]="accordionItem1.expanded ? '' : 'none'"
+        [attr.id]="'accordion-body-1'"
+        [attr.aria-labelledby]="'accordion-header-1'">
+        <div>
+          <label for="recorrido">Recorrido de una línea</label>
+          <input type="radio" name="bus" id="recorrido" value="r" ngModel>
+        </div>
+      </div>
+    </cdk-accordion-item>
+    <cdk-accordion-item
+      #accordionItem2="cdkAccordionItem"
+      class="example-accordion-item"
+      role="button"
+      tabindex="0"
+      [attr.id]="'accordion-header-2'"
+      [attr.aria-expanded]="accordionItem2.expanded"
+      [attr.aria-controls]="'accordion-body-2'">
+      <h4 class="example-accordion-item-header" (click)="accordionItem2.toggle()">
+        <span>Paradas</span>
+        <span class="example-accordion-item-description">
+          <img *ngIf="!accordionItem2.expanded" src="../../assets/images/add.svg" alt="imagen extender" width="20" height="20" />
+          <img *ngIf="accordionItem2.expanded" src="../../assets/images/less.svg" alt="imagen extender" width="20" height="20" />
+          <!-- Click to {{ accordionItem0.expanded ? 'close' : 'open' }} -->
+        </span>
+      </h4>
+      <div
+        class="example-accordion-item-body"
+        role="region"
+        [style.display]="accordionItem2.expanded ? '' : 'none'"
+        [attr.id]="'accordion-body-2'"
+        [attr.aria-labelledby]="'accordion-header-2'">
+        <div>
+          <label for="paradasLineaBus">Paradas de una línea de bus</label>
+          <input type="radio" name="bus" id="paradasLineaBus" value="pLB" ngModel>
+        </div>
+        <div>
+          <label for="paradasBus">Paradas de bus</label>
+          <input type="radio" name="bus" id="paradasBus" value="pB" ngModel>
+        </div>
+        <div>
+          <label for="paradasBusDistrito">Paradas de bus de un distrito</label>
+          <input type="radio" name="bus" id="paradasBusDistrito" value="pBD" ngModel>
+        </div>
+      </div>
+    </cdk-accordion-item>
+    <cdk-accordion-item
+      #accordionItem3="cdkAccordionItem"
+      class="example-accordion-item"
+      role="button"
+      tabindex="0"
+      [attr.id]="'accordion-header-3'"
+      [attr.aria-expanded]="accordionItem3.expanded"
+      [attr.aria-controls]="'accordion-body-3'">
+      <h4 class="example-accordion-item-header" (click)="accordionItem3.toggle()">
+        <span>Horarios</span>
+        <span class="example-accordion-item-description">
+          <img *ngIf="!accordionItem3.expanded" src="../../assets/images/add.svg" alt="imagen extender" width="20" height="20" />
+          <img *ngIf="accordionItem3.expanded" src="../../assets/images/less.svg" alt="imagen extender" width="20" height="20" />
+          <!-- Click to {{ accordionItem0.expanded ? 'close' : 'open' }} -->
+        </span>
+      </h4>
+      <div
+        class="example-accordion-item-body"
+        role="region"
+        [style.display]="accordionItem3.expanded ? '' : 'none'"
+        [attr.id]="'accordion-body-3'"
+        [attr.aria-labelledby]="'accordion-header-3'">
+        <!--<div>
+          <label for="horariosBus">Horario de una línea de bus</label>
+          <input type="radio" name="bus" id="horariosBus" value="hB" ngModel>
+        </div>
+        <div>
+          <label for="horarioBusParada">Horario de un bus a nivel de parada</label>
+          <input type="radio" name="bus" id="horarioBusParada" value="hBP" ngModel>
+        </div>-->
+        <div>
+          <label for="horasPasoHorarioLineaBus">Horas de paso por parada según horario de la línea</label>
+          <input type="radio" name="bus" id="horasPasoHorarioLineaBus" value="hPHLB" ngModel>
+        </div>
+      </div>
+    </cdk-accordion-item>
+    <cdk-accordion-item
+      #accordionItem4="cdkAccordionItem"
+      class="example-accordion-item"
+      role="button"
+      tabindex="0"
+      [attr.id]="'accordion-header-4'"
+      [attr.aria-expanded]="accordionItem4.expanded"
+      [attr.aria-controls]="'accordion-body-4'">
+      <h4 class="example-accordion-item-header" (click)="accordionItem4.toggle()">
+        <span>Paradas más cercanas(1km)</span>
+        <span class="example-accordion-item-description">
+          <img *ngIf="!accordionItem4.expanded" src="../../assets/images/add.svg" alt="imagen extender" width="20" height="20" />
+          <img *ngIf="accordionItem4.expanded" src="../../assets/images/less.svg" alt="imagen extender" width="20" height="20" />
+          <!-- Click to {{ accordionItem0.expanded ? 'close' : 'open' }} -->
+        </span>
+      </h4>
+      <div
+        class="example-accordion-item-body"
+        role="region"
+        [style.display]="accordionItem4.expanded ? '' : 'none'"
+        [attr.id]="'accordion-body-4'"
+        [attr.aria-labelledby]="'accordion-header-4'">
+        <div>
+          <label for="paradasCercanas">Paradas cercanas</label>
+          <input type="radio" name="bus" id="paradasCercanas" value="pC" ngModel>
+        </div>
+      </div>
+    </cdk-accordion-item>
+  </cdk-accordion>
+  <!--<div>
     <h4>
       <span>Paso de linea en tiempo real</span>
       <span><img (click)="showRadioInput($event)" src="../../assets/images/add.svg" alt="imagen extender" width="20" height="20" /></span>
@@ -79,7 +241,7 @@
         <input type="radio" name="bus" id="paradasCercanas" value="pC" ngModel>
       </div>
     </div>
-  </div>
+  </div>-->
   <div>
     <input type="submit" value="Elegir">
   </div>
@@ -89,7 +251,8 @@
     <label for="parada">Parada</label>
     <input type="text" name="parada" id="parada" ngModel />
   </div> -->
-  <div *ngIf="tiempoRealParada || tiempoRealLineaYParada || horasPasoHorarioLineaBus || horarioBusParada">
+  <!-- <div *ngIf="tiempoRealParada || tiempoRealLineaYParada || horasPasoHorarioLineaBus || horarioBusParada"> -->
+  <div *ngIf="tiempoRealParada || tiempoRealLineaYParada || horasPasoHorarioLineaBus">
     <div class="select">
       <label for="parada">Parada</label>
       <select name="parada" id="parada" ngModel (ngModelChange)="setLine($event)">
@@ -99,8 +262,8 @@
       <!--<input type="text" name="parada" id="parada" ngModel /> -->
     </div>
   </div>
-  <div
-    *ngIf="tiempoRealLineaYParada || recorridoLinea || paradasLineaBus || horariosBus || horarioBusParada || horasPasoHorarioLineaBus">
+  <!-- <div *ngIf="tiempoRealLineaYParada || recorridoLinea || paradasLineaBus || horariosBus || horarioBusParada || horasPasoHorarioLineaBus"> -->
+  <div *ngIf="tiempoRealLineaYParada || recorridoLinea || paradasLineaBus || horasPasoHorarioLineaBus">
     <div class="select">
       <label for="linea">Línea</label>
       <!--<select name="linea" id="linea" ngModel >
@@ -173,44 +336,49 @@
   </div>
 </div>
 
-<div *ngIf="road">
+<!-- <div class="road" *ngIf="road">
   <h3>{{queryTitle}}</h3>
   <div>
     <div class="map" leaflet [leafletOptions]="options" (leafletMapReady)="onMapReady($event)" [leafletLayers]="layers">
     </div>
   </div>
-</div>
-<div *ngIf="buses.length > 0">
+</div> -->
+<div *ngIf="loaderService.isLoading | async; else notLoading">Loading!</div>
+<ng-template #notLoading>
+<div>
   <h3>{{queryTitle}}</h3>
-  <div>
-    <div class="map" leaflet [leafletOptions]="options" (leafletMapReady)="onMapReady($event)" [leafletLayers]="layers">
+    <div class="buses" *ngIf="buses.length > 0 || checkAllStopBus">
+      <div class="map" leaflet [leafletOptions]="options" (leafletMapReady)="onMapReady($event)" [leafletLayers]="layers">
+      </div>
     </div>
-  </div>
-  <div class="container cards">
-    <div class="paradas card" id="p{{parada.parada}}" *ngFor="let parada of buses; let i = index;">
-        <div class="card__image">
-          <a href="#">
-            <div class="map2" leaflet [leafletOptions]="namesOptions[i]" [leafletLayer]="names[i]">
-            </div>
-          </a>
-        </div>
-        <div class="card__overlay">
-          <div class="card__header">
-            <svg class="card__arc" xmlns="http://www.w3.org/2000/svg">
-              <path />
-            </svg>
-            <div class="card__header-text">
-              <h4 class="card__title">Parada: {{parada.nombreParada}}</h4>
-            </div>
+    <div *ngIf="loaderService.isLoading | async; else notLoading">Loading!</div>
+    <ng-template #notLoading>
+    <div *ngIf="buses.length > 0" class="container cards">
+      <div class="paradas card" id="p{{parada.parada}}" *ngFor="let parada of buses; let i = index;">
+          <div class="card__image">
+            <a href="#">
+              <div class="map2" leaflet [leafletOptions]="namesOptions[i]" [leafletLayer]="names[i]">
+              </div>
+            </a>
           </div>
-          <p class="card__description">Dirección: {{parada.direccion}}</p>
-          <p class="card__description" *ngIf="!paradasBusDistrito">Distrito: {{parada.distrito}}</p>
-          <p class="card__description" *ngIf="parada.linea">Líneas: {{parada.linea}}</p>
-          <p class="card__description">Nombre vía: {{parada.nombreVia}}</p>
-          <p class="card__description" *ngIf="parada.sentido">Sentido: {{parada.sentido}}</p>
-        </div>
+          <div class="card__overlay">
+            <div class="card__header">
+              <svg class="card__arc" xmlns="http://www.w3.org/2000/svg">
+                <path />
+              </svg>
+              <div class="card__header-text">
+                <h4 class="card__title">Parada: {{parada.nombreParada}}</h4>
+              </div>
+            </div>
+            <p class="card__description">Dirección: {{parada.direccion}}</p>
+            <p class="card__description" *ngIf="!paradasBusDistrito">Distrito: {{parada.distrito}}</p>
+            <p class="card__description" *ngIf="parada.linea">Líneas: {{parada.linea}}</p>
+            <p class="card__description">Nombre vía: {{parada.nombreVia}}</p>
+            <p class="card__description" *ngIf="parada.sentido">Sentido: {{parada.sentido}}</p>
+          </div>
+      </div>
     </div>
-  </div>
+    </ng-template>
   <!--<div *ngFor="let bus of buses">
     <p>
       {{bus.direccion}}
@@ -235,6 +403,7 @@
     </p>
   </div>-->
 </div>
+</ng-template>
 <div *ngIf="paradas1km.length > 0">
   <div>
     <div class="map" leaflet [leafletOptions]="options" [leafletLayers]="layers">
@@ -264,26 +433,32 @@
     </div>
   </div>
 </div>
-<div *ngIf="horario">
-  <div class="container cards">
-    <div class="paradas card" id="p{{horario.parada}}">
-        <div class="card__overlay">
-          <div class="card__header">
-            <svg class="card__arc" xmlns="http://www.w3.org/2000/svg">
-              <path />
-            </svg>
-            <div class="card__header-text">
-              <h4 class="card__title">Parada: {{horario.parada}}</h4>
-            </div>
+<div *ngIf="horasPasoHorarioLineaBus && horario">
+  <div class="container-big cards-big line-short">
+    <div class="card-big" id="p{{horario.parada}}">
+      <div class="card__image">
+        <a href="#">
+          <div class="map2" leaflet [leafletOptions]="options" [leafletLayers]="layers">
           </div>
-          <p class="card__description">Dirección: {{horario.direccion}}</p>
-          <p class="card__description">Distrito: {{horario.distrito}}</p>
-          <p class="card__description">Líneas: {{horario.sentido}}</p>
-          <p class="card__description">Líneas: {{horario.via}}</p>
-          <p class="card__description">Líneas: {{horario.diario}}</p>
-          <p class="card__description">Líneas: {{horario.sabado}}</p>
-          <p class="card__description">Líneas: {{horario.festivo}}</p>
+        </a>
+      </div>
+      <div class="card__overlay-big">
+        <div class="card__header-big">
+          <svg class="card__arc-big" xmlns="http://www.w3.org/2000/svg">
+            <path />
+          </svg>
+          <div class="card__header-text-big">
+            <h4 class="card__title-big">Parada: {{horario.parada}}</h4>
+          </div>
         </div>
+        <p class="card__description-big">Dirección: {{horario.direccion}}</p>
+        <p class="card__description-big">Distrito: {{horario.distrito}}</p>
+        <p class="card__description-big">Sentido: {{horario.sentido}}</p>
+        <p class="card__description-big">Vía: {{horario.via}}</p>
+        <p class="card__description-big">Diario: {{horario.diario}}</p>
+        <p class="card__description-big">Sábado: {{horario.sabado}}</p>
+        <p class="card__description-big">Domingo: {{horario.festivo}}</p>
+      </div>
     </div>
   </div>
 </div>
