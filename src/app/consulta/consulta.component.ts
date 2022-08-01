@@ -1,10 +1,10 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { map } from 'rxjs/operators';
 import { Bus } from '../models/Bus';
 import { Parada } from '../models/parada';
 import { TiempoReal } from '../models/TiempoReal';
-import { latLng, marker, tileLayer, Map, control } from 'leaflet';
+import { latLng, marker, tileLayer, Map } from 'leaflet';
 import { ConsultaService } from '../services/consulta.service';
 
 import "leaflet";
@@ -42,8 +42,6 @@ export class ConsultaComponent implements OnInit {
       event.preventDefault();
     }
   }
-  items = ['Item 1', 'Item 2', 'Item 3', 'Item 4', 'Item 5'];
-  expandedIndex = 0;
 
   // titulo de la consulta
   queryTitle!: string;
@@ -52,10 +50,6 @@ export class ConsultaComponent implements OnInit {
   app_id:string = '';
   app_key:string = '';
 
-  // key de geoapify
-  myApiKey: string = ''
-
-  // dataForm = new FormControl('');
   submitted!: boolean;
   tiempoRealParada!: boolean;
   tiempoRealLineaYParada!: boolean;
@@ -86,7 +80,7 @@ export class ConsultaComponent implements OnInit {
   error!: string;
   route: any[] = [];
   paradas: Parada[] = [];
-  horario!: Horario;
+  horario!: Horario | null;
   lines: any = [];
   tiempoReal: TiempoReal[] = [];
   buses: Bus[] = [];
@@ -174,8 +168,6 @@ export class ConsultaComponent implements OnInit {
     } else {
       this.submitted = false;
     }
-
-    // console.log(value);
   }
 
   /**
@@ -292,13 +284,10 @@ export class ConsultaComponent implements OnInit {
             parada.geometry.coordinates[1]);
           return checkPoints;
         });
-
-        // console.log(stops);
         let contador = 0;
         stops.map((stop: any) => {
           let stops = [];
           this.dataMap.push(
-            //{latitude: stop.geometry.coordinates[0], longitude: stop.geometry.coordinates[1], name: stop.properties.NOM_PARADA}
             marker([stop.geometry.coordinates[1], stop.geometry.coordinates[0]])
               .bindPopup('Parada: '+stop.properties.NOM_PARADA+'<br/>Distrito: '+stop.properties.NOM_DISTRICTE+'<br/>Dirección: '+stop.properties.ADRECA+'<br><a class="ver" href="/consultar#p'+stop.properties.CODI_PARADA+'">Ver</a>')
           );
@@ -320,63 +309,23 @@ export class ConsultaComponent implements OnInit {
             map(response => JSON.stringify(response)),
             map(response => JSON.parse(response))
           ).subscribe((bus) => {
+            stopsLines = '';
             bus.data.ibus.map((b: any) => {
-              stopsLines += b.line + ', '
+              stopsLines += b.line + ', ';
             });
+            stopsLines = stopsLines.replace(/,\s$/, '.');
             // console.log(stopsLines);
             this.paradas1km.push(new Parada(stop.properties.NOM_PARADA, stop.properties.CODI_PARADA,
               stop.properties.ADRECA, stop.properties.NOM_DISTRICTE, stopsLines));
           });
         });
         for (let i = 0; i < this.dataSmallMap.length; i++) {
-          this.showSmallMap(this.dataSmallMap[i], this.layerSmallMap[i], i);
+          // this.showSmallMap(this.dataSmallMap[i], this.layerSmallMap[i], i);
+          this.namesOptions[i] = this.service.showSmallMap(this.dataSmallMap[i], this.layerSmallMap[i])[0];
+          this.names[i] = this.service.showSmallMap(this.dataSmallMap[i], this.layerSmallMap[i])[1];
         }
       });
       this.showMap(data);
-
-      /*.subscribe((paradas) => {
-        let stops = paradas.features.filter((parada: any) => {
-          let checkPoints = this.arePointsNear(data.longitud, parada.geometry.coordinates[0], data.latitud,
-            parada.geometry.coordinates[1]);
-          return checkPoints;
-        });
-
-        // console.log(stops);
-        let contador = 0;
-        stops.map((stop: any) => {
-          let stopsLines = '';
-          this.dataMap.push(
-            //{latitude: stop.geometry.coordinates[0], longitude: stop.geometry.coordinates[1], name: stop.properties.NOM_PARADA}
-            marker([stop.geometry.coordinates[1], stop.geometry.coordinates[0]])
-              .bindPopup('Parada: '+stop.properties.NOM_PARADA+'<br/>Distrito: '+stop.properties.NOM_DISTRICTE+'<br/>Dirección: '+stop.properties.ADRECA+'<br><a class="ver" href="/consultar#p'+stop.properties.CODI_PARADA+'">Ver</a>')
-          );
-          let dataSmallMap = {latitud: stop.geometry.coordinates[1],longitud: stop.geometry.coordinates[0]}
-          let layerSmallMap = marker([stop.geometry.coordinates[1], stop.geometry.coordinates[0]]);
-
-          this.dataSmallMap.push(dataSmallMap);
-          this.layerSmallMap.push(layerSmallMap);
-          this.names.push(`layer`+contador);
-          this.namesOptions.push(`option`+contador);
-          //this.showSmallMap(dataSmallMap, layerSmallMap);
-
-          this.http.get('https://api.tmb.cat/v1/ibus/stops/'+stop.properties.CODI_PARADA+'?app_id='+this.app_id+'&app_key='+this.app_key)
-          .pipe(
-            map(response => JSON.stringify(response)),
-            map(response => JSON.parse(response))
-          ).subscribe((bus) => {
-            bus.data.ibus.map((b: any) => {
-              stopsLines += b.line + ', '
-            });
-            // console.log(stopsLines);
-            this.paradas1km.push(new Parada(stop.properties.NOM_PARADA, stop.properties.CODI_PARADA,
-              stop.properties.ADRECA, stop.properties.NOM_DISTRICTE, stopsLines));
-          });
-        });
-        for (let i = 0; i < this.dataSmallMap.length; i++) {
-          this.showSmallMap(this.dataSmallMap[i], this.layerSmallMap[i], i);
-        }
-        this.showMap(data);*/
-      //});
     }
   }
 
@@ -385,35 +334,9 @@ export class ConsultaComponent implements OnInit {
    * @param data , tipo any, datos como la latitud y la longitud.
    */
   private showMap(data: any) {
+    let dataMapOptions: any = {latitud: data.latitud, longitud: data.longitud};
+    this.optionsAndLayers(dataMapOptions, 12);
     this.layers = this.dataMap;
-    this.options = {
-      layers: [
-        tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors'
-        })
-      ],
-      zoom: 12,
-      center: latLng([ data.latitud, data.longitud ])
-    };
-  }
-
-  /**
-   * Muestra un mapa pequeño para cada parada.
-   * @param data , tipo any, datos como la longitud y la latitud.
-   * @param layer , tipo any, marcador con los datos de la parada para cada mapa pequeño.
-   * @param i , tipo any, contador.
-   */
-  private showSmallMap(data: any, layer: any, i: any) {
-    this.names[i] = layer;
-    this.namesOptions[i] = {
-      layers: [
-        tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors'
-        })
-      ],
-      zoom: 17,
-      center: latLng([ data.latitud, data.longitud ])
-    };
   }
 
   /**
@@ -428,10 +351,8 @@ export class ConsultaComponent implements OnInit {
       map(response => JSON.parse(response)),
     )
     .subscribe((bus) => {
-        bus.data.ibus.map((b: any) => {this.lines.push(b.line)});
-        // console.log(this.lines);
-      });
-    // console.log(event);
+      bus.data.ibus.map((b: any) => {this.lines.push(b.line)});
+    });
   }
 
   /**
@@ -461,6 +382,7 @@ export class ConsultaComponent implements OnInit {
     this.dataSmallMap = [];
     this.namesOptions = [];
     this.names = [];
+    this.horario = null;
   }
 
   /**
@@ -468,43 +390,18 @@ export class ConsultaComponent implements OnInit {
    * @param value , tipo any
    */
   featuresMap(value: any, check = true) {
-    let dataMap: any[] = [];
-    let layerSmallMap: any[] = [];
-    let dataSmallMap: any[] = [];
     if (check) {
-      this.options = {
-        layers: [
-          tileLayer('https://maps.geoapify.com/v1/tile/osm-carto/{z}/{x}/{y}.png?apiKey='+this.myApiKey, {
-            attribution: '&copy; OpenStreetMap contributors'
-          }),
-        ],
-        control: this.route,
-        zoom: 14,
-        center: latLng([ value.features[0].geometry.coordinates[1], value.features[0].geometry.coordinates[0] ])
-      };
+      let data: any = {latitud: value.features[0].geometry.coordinates[1], longitud: value.features[0].geometry.coordinates[0]}
+      this.optionsAndLayers(data, 14, this.route, false);
     }
-    // console.log(value);
-    // let routeAnada: any[] = [];
-    // let routeTornada: any[] = [];
-    value.features.map((bf: any) => {
-      /*if (bf.properties.ID_SENTIT === 1)
-        routeAnada.push(L.latLng(bf.geometry.coordinates[1], bf.geometry.coordinates[0]));
-      if (bf.properties.ID_SENTIT === 2)
-        routeTornada.push(L.latLng(bf.geometry.coordinates[1], bf.geometry.coordinates[0]));*/
-      dataMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]])
-      .bindPopup('Parada: '+bf.properties.NOM_PARADA+'<br/>Distrito: '+bf.properties.NOM_DISTRICTE+'<br/>Dirección: '+bf.properties.ADRECA+'<br><a class="ver" href="/consultar#p'+bf.properties.CODI_PARADA+'">Ver</a>'))
-      let p = bf.properties;
-      this.buses.push(new Bus(p.ADRECA, p.NOM_LINIA, p.CODI_PARADA, p.NOM_DISTRICTE,
-        p.NOM_VIA, p.NOM_PARADA, p.DESTI_SENTIT));
-      layerSmallMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]]));
-      dataSmallMap.push({latitud: bf.geometry.coordinates[1],longitud: bf.geometry.coordinates[0]})
-    });
-    // this.route = [];
-    // this.route = [routeAnada, routeTornada];
-    // this.route = this.route.flatMap((x) => x);
-    this.layers = dataMap;
-    for (let i = 0; i < dataSmallMap.length; i++) {
-      this.showSmallMap(dataSmallMap[i], layerSmallMap[i], i);
+    this.buses = [];
+    this.route = [];
+    let dataAndLayers = this.service.featuresMap(value, this.buses, this.layers);
+    this.layers = dataAndLayers[2];
+    let contador = dataAndLayers[0].length;
+    for (let i = 0; i < contador; i++) {
+      this.namesOptions[i] = this.service.showSmallMap(dataAndLayers[0][i], dataAndLayers[1][i])[0];
+      this.names[i] = this.service.showSmallMap(dataAndLayers[0][i], dataAndLayers[1][i])[1];
     }
   }
 
@@ -513,44 +410,13 @@ export class ConsultaComponent implements OnInit {
    * @param value , tipo any
    */
    geometryMap(value: any) {
-    // this.featuresMap(value);
-    let route: any[] = [];
-    this.options = {
-      layers: [
-        tileLayer('https://maps.geoapify.com/v1/tile/osm-carto/{z}/{x}/{y}.png?apiKey='+this.myApiKey, {
-          attribution: '&copy; OpenStreetMap contributors'
-        }),
-      ],
-      control: this.route,
-      zoom: 14,
-      center: latLng([ value.features[0].geometry.coordinates[0][0][1], value.features[0].geometry.coordinates[0][0][0] ])
-    };
-    value.features[0].geometry.coordinates[0].map((bf: any) => {
-      route.push(L.latLng(bf[1], bf[0]));
-    });
-    value.features[1].geometry.coordinates[0].map((bf: any) => {
-      route.push(L.latLng(bf[1], bf[0]));
-    });
-    // console.log(value);
+    let data: any = {latitud: value.features[0].geometry.coordinates[0][0][1], longitud: value.features[0].geometry.coordinates[0][0][0]}
+    this.optionsAndLayers(data, 14, this.route, false);
     this.route = [];
-    this.route = route;
+    this.route = this.service.geometryMap(value);
     this.route = this.route.flatMap((x) => x);
     this.layers = this.layers;
-    // this.road = true;
     this.queryTitle = 'Recorrido línea: ';
-  }
-
-  /**
-   * Asigna un valor a la propiedad error.
-   * @param error , tipo string.
-   */
-  handleError(error: any) {
-    console.log(error);
-    if (error instanceof HttpErrorResponse) {
-      this.error = error.message;
-    } else {
-      this.error = "No tenemos datos de esa "+ error +"!!!";
-    }
   }
 
   /**
@@ -562,11 +428,7 @@ export class ConsultaComponent implements OnInit {
    * @returns boolean, si el punto está dentro de la distancia.
    */
   arePointsNear(checkPointLon: number, centerPointLon: number, checkPointLat: number, centerPointLat: number) {
-    var kx = 40000 / 360;
-    var ky = Math.cos(Math.PI * centerPointLat / 180.0) * kx;
-    var dx = Math.abs(centerPointLat - checkPointLat) * ky;
-    var dy = Math.abs(centerPointLon - checkPointLon) * kx;
-    return Math.sqrt(dx * dx + dy * dy) <= 1;
+    return this.service.arePointsNear(checkPointLon, centerPointLon, checkPointLat, centerPointLat);
   }
 
   /**
@@ -582,40 +444,7 @@ export class ConsultaComponent implements OnInit {
    * @param map , tipo Map, mapa.
    */
   onMapReady(map: Map) {
-    var waypoints!: any;
-    // creamos un string con todos los waypoints encadenados.
-    for (let i = 0; i < this.route.length; i++) {
-      let waypoint = [this.route[i].lat, this.route[i].lng];// latitud, longitud
-      waypoints += `${waypoint.join(',')}|`;
-    }
-    if (waypoints != undefined && waypoints.length > 0) {
-      waypoints = waypoints.replace(/undefined/g, '');
-      waypoints = waypoints.replace(/\|$/, '');
-      const url = `https://api.geoapify.com/v1/routing?waypoints=${waypoints}&mode=bus&details=instruction_details&apiKey=${this.myApiKey}`;
-      fetch(url).then(res => res.json()).then(result => {
-          console.log(result);
-          L.geoJSON(result, {
-            style: () => {
-              return {
-                color: "rgba(20, 137, 255, 0.7)",
-                weight: 2
-              };
-            }
-          }).addTo(map);
-      }, error => console.log(error));
-    }
-    // let that = this;
-    // var route = L.Routing.control({
-    /*for (let i = 0; i < this.route.length; i++) {
-      L.Routing.control({
-        waypoints: [this.route[i], this.route[i+1]],
-        draggableWaypoints: false,
-      }).addTo(map);
-    }*/
-
-  // L.Routing.errorControl(control).addTo(map);
-    // route.setWaypoints(this.route);
-    // route.setWaypoints(this.routeTornada);
+    this.service.onMapReady(map, this.route);
   }
 
   /**
@@ -625,31 +454,9 @@ export class ConsultaComponent implements OnInit {
   allStopBus(data: any) {
     this.queryTitle = 'Paradas de Bus - Todas';
     this.checkAllStopBus = true;
-    this.layers = this.dataMap;
-    this.options = {
-      layers: [
-        tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors'
-        })
-      ],
-      zoom: 11,
-      center: latLng([ 41.3879, 2.16992 ])
-    };
-    let dataSmallMap: any[] = [];
-    let layerSmallMap: any[] = [];
-    data.features.map((bf: any) => {
-      this.dataMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]])
-      .bindPopup('Parada: '+bf.properties.NOM_PARADA+'<br/>Distrito: '+bf.properties.NOM_DISTRICTE+'<br/>Dirección: '+bf.properties.ADRECA+'<br><a class="ver" href="/consultar#p'+bf.properties.CODI_PARADA+'">Ver</a>'))
-      /*let p = bf.properties;
-      this.buses.push(new Bus(p.ADRECA, p.NOM_LINIA, p.CODI_PARADA, p.NOM_DISTRICTE,
-        p.NOM_VIA, p.NOM_PARADA, p.DESTI_SENTIT));
-      layerSmallMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]]));
-      dataSmallMap.push({latitud: bf.geometry.coordinates[1],longitud: bf.geometry.coordinates[0]})*/
-    });
-    this.layers = this.dataMap;
-    /*for (let i = 0; i < dataSmallMap.length; i++) {
-      this.showSmallMap(dataSmallMap[i], layerSmallMap[i], i);
-    }*/
+    let dataMapOptions = {latitud: 41.3879, longitud: 2.16992};
+    this.optionsAndLayers(dataMapOptions, 11);
+    this.layers = this.service.allStopBus(data);
   }
 
   /**
@@ -658,33 +465,17 @@ export class ConsultaComponent implements OnInit {
    */
   allStopBusDristrict(data: any) {
     this.queryTitle = 'Paradas de Bus - Distrito: '+this.district;
-    this.layers = this.dataMap;
-    this.options = {
-      layers: [
-        tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors'
-        })
-      ],
-      zoom: 11,
-      center: latLng([ 41.3879, 2.16992 ])
-    };
-    console.log(data);
-    let dataSmallMap: any[] = [];
-    let layerSmallMap: any[] = [];
-    data.features.map((bf: any) => {
-      let p = bf.properties;
-      if (p.NOM_DISTRICTE === this.district) {
-        this.dataMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]])
-        .bindPopup('Parada: '+bf.properties.NOM_PARADA+'<br/>Distrito: '+bf.properties.NOM_DISTRICTE+'<br/>Dirección: '+bf.properties.ADRECA+'<br><a class="ver" href="/consultar#p'+bf.properties.CODI_PARADA+'">Ver</a>'))
-
-        this.buses.push(new Bus(p.ADRECA, p.NOM_LINIA, p.CODI_PARADA, p.NOM_DISTRICTE,
-          p.NOM_VIA, p.NOM_PARADA, p.DESTI_SENTIT));
-        layerSmallMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]]));
-        dataSmallMap.push({latitud: bf.geometry.coordinates[1],longitud: bf.geometry.coordinates[0]})
-      }
-    });
-    for (let i = 0; i < dataSmallMap.length; i++) {
-      this.showSmallMap(dataSmallMap[i], layerSmallMap[i], i);
+    let dataMapOptions = {latitud: 41.3879, longitud: 2.16992};
+    this.optionsAndLayers(dataMapOptions, 11);
+    this.namesOptions = [];
+    this.names = [];
+    this.buses = [];
+    let dataAndLayers = this.service.allStopBusDristrict(data, this.district, this.buses);
+    this.layers = dataAndLayers[2];
+    let contador = dataAndLayers[0].length;
+    for (let i = 0; i < contador; i++) {
+      this.namesOptions[i] = this.service.showSmallMap(dataAndLayers[0][i], dataAndLayers[1][i])[0];
+      this.names[i] = this.service.showSmallMap(dataAndLayers[0][i], dataAndLayers[1][i])[1];
     }
   }
 
@@ -694,64 +485,27 @@ export class ConsultaComponent implements OnInit {
    */
   private horarios(value: any) {
     this.queryTitle = 'Horarios';
-    let direccion = '';
-    let parada = '';
-    let via = '';
-    let distrito = '';
-    let sentido = '';
-    let diarios = '';
-    let sabado = '';
-    let festivos = '';
-    let contadorFL = 0;
-    let contadorDL = 0;
-    let contadorDIF = 0;
-    let data = {latitud: value.features[0].geometry.coordinates[1], longitud: value.features[0].geometry.coordinates[0]}
-    value.features.map((horario: any) => {
-      let prop = horario.properties;
-      let horas: string = prop.LITERAL;
-      horas = horas.replace('#FROM#', 'DESDE');
-      horas = horas.replace('#TO#', 'A');
-      horas = horas.replace('#EVERY#', 'CADA');
-      horas = horas.replace('#MINUTES#', 'MINUTOS');
-      direccion = prop.ADRECA;
-      parada = prop.NOM_PARADA;
-      via = prop.NOM_VIA;
-      distrito = prop.NOM_DISTRICTE;
-      sentido = prop.DESC_SENTIT;
-      let feinersLength: any = value.features.filter((fL: any) => {
-        return fL.properties.DESC_TIPUS_DIA.toLowerCase() ===  'feiners';
-      });
-      let dissabtesLength: any = value.features.filter((dL: any) => {
-        return dL.properties.DESC_TIPUS_DIA.toLowerCase() ===  'dissabtes';
-      });
-      let festiusLength: any = value.features.filter((fL: any) => {
-        return fL.properties.DESC_TIPUS_DIA.toLowerCase() ===  'festius i diumenges';
-      });
-      if (prop.DESC_TIPUS_DIA.toLowerCase() === 'feiners') {
-        if (contadorFL === feinersLength.length-1) {
-          diarios += horas;
-        } else {
-          diarios += horas + ' - ';
-        }
-        contadorFL++;
-      } else if (prop.DESC_TIPUS_DIA.toLowerCase() === 'dissabtes') {
-        if (contadorDL === dissabtesLength.length-1) {
-          sabado += horas;
-        } else {
-          sabado += horas + ' - ';
-        }
-        contadorDL++;
-      } else if (prop.DESC_TIPUS_DIA.toLowerCase() === 'festius i diumenges') {
-        if (contadorDIF === festiusLength.length-1) {
-          festivos += horas;
-        } else {
-          festivos += horas + ' - ';
-        }
-        contadorDIF++;
-      }
-    });
-    let dataSmallMap: any[] = [];
-    let layerSmallMap: any[] = [];
+    this.options = [];
+    this.layers = [];
+    this.horario = null;
+    let dataMap: any[] = this.service.horarios(value);
+    this.optionsAndLayers(dataMap[2], 16);
+    this.layers.push(marker([dataMap[2].latitud, dataMap[2].longitud]));
+    this.horario = dataMap[3];
+    let dataSmallMap = dataMap[0];
+    let layerSmallMap = dataMap[1];
+    this.namesOptions[0] = this.service.showSmallMap(dataSmallMap[0], layerSmallMap[0])[0];
+    this.names[0] = this.service.showSmallMap(dataSmallMap[0], layerSmallMap[0])[1];
+  }
+
+  /**
+   * Establece el valor de options and layers.
+   * @param data , tipo any, contiene latitud y longitud.
+   * @param zoom, tipo number, zoom del mapa.
+   * @param route, tipo any, ruta a seguir en el mapa.
+   * @param check, tipo boolean, comprueba si layers tiene que ser inicializado.
+   */
+  private optionsAndLayers(data: { latitud: any; longitud: any; }, zoom: number, route: any = null, check = true) {
     this.options = {};
     this.options = {
       layers: [
@@ -759,15 +513,11 @@ export class ConsultaComponent implements OnInit {
           attribution: '&copy; OpenStreetMap contributors'
         })
       ],
-      zoom: 16,
-      center: latLng([ data.latitud, data.longitud ])
+      control: route,
+      zoom: zoom,
+      center: latLng([data.latitud, data.longitud])
     };
-    this.layers = [];
-    this.layers.push(marker([data.latitud, data.longitud]));
-    this.horario = new Horario(direccion, parada, distrito, via, sentido, diarios, sabado, festivos);
-    dataSmallMap.push({latitud: data.latitud,longitud: data.longitud});
-    layerSmallMap.push(marker([data.latitud, data.longitud]));
-    this.showSmallMap(dataSmallMap[0], layerSmallMap[0], 0);
+    if (check)
+      this.layers = [];
   }
-
 }

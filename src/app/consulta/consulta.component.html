@@ -343,7 +343,10 @@
     </div>
   </div>
 </div> -->
-<div *ngIf="loaderService.isLoading | async; else notLoading">Loading!</div>
+<div class="loading" *ngIf="loaderService.isLoading | async; else notLoading">
+  <img src="../../assets/images/loading3.gif" alt="imagen cargando">
+  ¡Cargando!
+</div>
 <ng-template #notLoading>
 <div>
   <h3>{{queryTitle}}</h3>
