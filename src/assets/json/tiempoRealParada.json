@@ -1,0 +1,55 @@
+{
+  "status": "success",
+  "data": {
+    "ibus": [
+      {
+        "routeId": "2021",
+        "line": "H2",
+        "text-ca": "2 min",
+        "t-in-s": 149,
+        "destination": "Av. Esplugues",
+        "t-in-min": 2
+      },
+      {
+        "routeId": "2291",
+        "line": "V29",
+        "text-ca": "3 min",
+        "t-in-s": 181,
+        "destination": "Diagonal Mar",
+        "t-in-min": 3
+      },
+      {
+        "routeId": "1271",
+        "line": "127",
+        "text-ca": "6 min",
+        "t-in-s": 391,
+        "destination": "Pl. Karl Marx",
+        "t-in-min": 6
+      },
+      {
+        "routeId": "2501",
+        "line": "D50",
+        "text-ca": "7 min",
+        "t-in-s": 443,
+        "destination": "Paral·lel",
+        "t-in-min": 7
+      },
+      {
+        "routeId": "0761",
+        "line": "76",
+        "text-ca": "17 min",
+        "t-in-s": 1079,
+        "destination": "Sant Genís",
+        "t-in-min": 17
+      },
+      {
+        "routeId": "0111",
+        "line": "11",
+        "text-ca": "32 min",
+        "t-in-s": 1930,
+        "destination": "Trinitat Vella",
+        "t-in-min": 32
+      }
+    ]
+  }
+}

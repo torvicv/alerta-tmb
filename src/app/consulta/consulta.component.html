@@ -22,11 +22,11 @@
         [style.display]="accordionItem0.expanded ? '' : 'none'"
         [attr.id]="'accordion-body-0'"
         [attr.aria-labelledby]="'accordion-header-0'">
-        <div>
+        <div #consulta>
           <label for="lineaYParada">Por Línea y Parada</label>
           <input type="radio" name="bus" id="lineaYParada" value="lYP" ngModel>
         </div>
-        <div>
+        <div #consulta>
           <label for="parada">Por Parada</label>
           <input type="radio" name="bus" id="parada" value="p" ngModel>
         </div>
@@ -45,7 +45,6 @@
         <span class="example-accordion-item-description">
           <img *ngIf="!accordionItem1.expanded" src="../../assets/images/add.svg" alt="imagen extender" width="20" height="20" />
           <img *ngIf="accordionItem1.expanded" src="../../assets/images/less.svg" alt="imagen extender" width="20" height="20" />
-          <!-- Click to {{ accordionItem0.expanded ? 'close' : 'open' }} -->
         </span>
       </h4>
       <div
@@ -54,7 +53,7 @@
         [style.display]="accordionItem1.expanded ? '' : 'none'"
         [attr.id]="'accordion-body-1'"
         [attr.aria-labelledby]="'accordion-header-1'">
-        <div>
+        <div #consulta>
           <label for="recorrido">Recorrido de una línea</label>
           <input type="radio" name="bus" id="recorrido" value="r" ngModel>
         </div>
@@ -73,7 +72,6 @@
         <span class="example-accordion-item-description">
           <img *ngIf="!accordionItem2.expanded" src="../../assets/images/add.svg" alt="imagen extender" width="20" height="20" />
           <img *ngIf="accordionItem2.expanded" src="../../assets/images/less.svg" alt="imagen extender" width="20" height="20" />
-          <!-- Click to {{ accordionItem0.expanded ? 'close' : 'open' }} -->
         </span>
       </h4>
       <div
@@ -82,15 +80,15 @@
         [style.display]="accordionItem2.expanded ? '' : 'none'"
         [attr.id]="'accordion-body-2'"
         [attr.aria-labelledby]="'accordion-header-2'">
-        <div>
+        <div #consulta>
           <label for="paradasLineaBus">Paradas de una línea de bus</label>
           <input type="radio" name="bus" id="paradasLineaBus" value="pLB" ngModel>
         </div>
-        <div>
+        <div #consulta>
           <label for="paradasBus">Paradas de bus</label>
           <input type="radio" name="bus" id="paradasBus" value="pB" ngModel>
         </div>
-        <div>
+        <div #consulta>
           <label for="paradasBusDistrito">Paradas de bus de un distrito</label>
           <input type="radio" name="bus" id="paradasBusDistrito" value="pBD" ngModel>
         </div>
@@ -109,7 +107,6 @@
         <span class="example-accordion-item-description">
           <img *ngIf="!accordionItem3.expanded" src="../../assets/images/add.svg" alt="imagen extender" width="20" height="20" />
           <img *ngIf="accordionItem3.expanded" src="../../assets/images/less.svg" alt="imagen extender" width="20" height="20" />
-          <!-- Click to {{ accordionItem0.expanded ? 'close' : 'open' }} -->
         </span>
       </h4>
       <div
@@ -118,7 +115,7 @@
         [style.display]="accordionItem3.expanded ? '' : 'none'"
         [attr.id]="'accordion-body-3'"
         [attr.aria-labelledby]="'accordion-header-3'">
-        <div>
+        <div #consulta>
           <label for="horasPasoHorarioLineaBus">Horas de paso por parada según horario de la línea</label>
           <input type="radio" name="bus" id="horasPasoHorarioLineaBus" value="hPHLB" ngModel>
         </div>
@@ -137,7 +134,6 @@
         <span class="example-accordion-item-description">
           <img *ngIf="!accordionItem4.expanded" src="../../assets/images/add.svg" alt="imagen extender" width="20" height="20" />
           <img *ngIf="accordionItem4.expanded" src="../../assets/images/less.svg" alt="imagen extender" width="20" height="20" />
-          <!-- Click to {{ accordionItem0.expanded ? 'close' : 'open' }} -->
         </span>
       </h4>
       <div
@@ -146,7 +142,7 @@
         [style.display]="accordionItem4.expanded ? '' : 'none'"
         [attr.id]="'accordion-body-4'"
         [attr.aria-labelledby]="'accordion-header-4'">
-        <div>
+        <div #consulta>
           <label for="paradasCercanas">Paradas cercanas</label>
           <input type="radio" name="bus" id="paradasCercanas" value="pC" ngModel>
         </div>
@@ -217,7 +213,7 @@
 <div *ngIf="submitted">
   <button class="boton" (click)="choose()">Volver a elegir</button>
 </div>
-<div class="tiempo-real">
+<div [ngClass]="tiempoRealParada ? 'tiempo-real-grid' : 'tiempo-real'">
   <div *ngFor="let tr of tiempoReal">
     <p>
       Línea: {{tr.linea}}

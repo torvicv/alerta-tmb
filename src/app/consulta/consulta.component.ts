@@ -1,10 +1,10 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, DoCheck, ElementRef, HostListener, OnInit, QueryList, Renderer2, ViewChild, ViewChildren } from '@angular/core';
 import { map } from 'rxjs/operators';
 import { Bus } from '../models/Bus';
 import { Parada } from '../models/parada';
 import { TiempoReal } from '../models/TiempoReal';
-import { latLng, marker, tileLayer, Map } from 'leaflet';
+import { latLng, marker, tileLayer, Map, icon } from 'leaflet';
 import { ConsultaService } from '../services/consulta.service';
 
 import "leaflet";
@@ -20,31 +20,17 @@ declare let L: any;
   templateUrl: './consulta.component.html',
   styleUrls: ['./consulta.component.css']
 })
-export class ConsultaComponent implements OnInit {
+export class ConsultaComponent implements OnInit, AfterViewChecked {
 
   /**
-   * Listener para todo el documento, que cuando haga click en cualquier parte, en este
-   * caso si el evento contiene la clase '.ver', ejecutará el código.
-   * @param event , de tipo any
+   * ViewChildren para seleccionar el div que envuelve el input radio, asi al pulsar en
+   * cualquier parte del div, se marca como checked el input.
    */
-  @HostListener('window:click', ['$event'])
-  onClick(event: any) {
-    if (event.target.classList.contains('ver')) {
-      let id = event.target.hash;
-      let selector = document.querySelector(id);
-      if (selector)
-        selector.classList.add('focus');
-      setTimeout(function() {
-        selector.classList.remove('focus');
-      }, 4000);
-    } else if (event.target.classList.contains('map2') ||
-      event.target.classList.contains('leaflet-marker-icon')) {
-      event.preventDefault();
-    }
-  }
+  @ViewChildren('consulta') consulta!: QueryList<any>;
 
   // titulo de la consulta
   queryTitle!: string;
+  control!: string;
 
   // identificadores tmb
   app_id:string = '';
@@ -87,7 +73,7 @@ export class ConsultaComponent implements OnInit {
   paradas1km: Parada[] = [];
   district!: string;
 
-  constructor(private http: HttpClient, private elementRef: ElementRef,
+  constructor(private http: HttpClient, private renderer: Renderer2,
     private service: ConsultaService, public loaderService: LoaderService) {
     this.submitted = false;
     this.tiempoRealParada = false;
@@ -122,12 +108,29 @@ export class ConsultaComponent implements OnInit {
     });
   }
 
+  ngAfterViewChecked(): void {
+    if (this.consulta !== undefined)
+    this.consulta.map((item) => {
+      this.renderer.listen(item.nativeElement, 'click', (event) => {
+        event.target.lastChild.checked = true;
+        this.control = event.target.lastChild.value;
+      });
+    });
+
+  }
+
   /**
    * Al enviar el formulario, recibimos el valor del radio y asignamos el boolean
    * correspondiente a true.
    * @param value , tipo string, valor que nos llega del formulario.
    */
-  onSubmit(value: string) {
+  onSubmit(formValue: string) {
+    let value = '';
+    if (formValue.length > 0) {
+      value = formValue;
+    } else {
+      value = this.control;
+    }
     this.lines = [];
     if (value.length > 0) {
       this.submitted = true;
@@ -288,11 +291,25 @@ export class ConsultaComponent implements OnInit {
         stops.map((stop: any) => {
           let stops = [];
           this.dataMap.push(
-            marker([stop.geometry.coordinates[1], stop.geometry.coordinates[0]])
+            marker([stop.geometry.coordinates[1], stop.geometry.coordinates[0]], {
+              icon: icon({
+                iconSize: [ 25, 41 ],
+                iconAnchor: [ 13, 41 ],
+                iconUrl: './assets/images/marker-icon.png',
+                shadowUrl: './assets/images/marker-shadow.png'
+              })
+            })
               .bindPopup('Parada: '+stop.properties.NOM_PARADA+'<br/>Distrito: '+stop.properties.NOM_DISTRICTE+'<br/>Dirección: '+stop.properties.ADRECA+'<br><a class="ver" href="/consultar#p'+stop.properties.CODI_PARADA+'">Ver</a>')
           );
           let dataSmallMap = {latitud: stop.geometry.coordinates[1],longitud: stop.geometry.coordinates[0]}
-          let layerSmallMap = marker([stop.geometry.coordinates[1], stop.geometry.coordinates[0]]);
+          let layerSmallMap = marker([stop.geometry.coordinates[1], stop.geometry.coordinates[0]], {
+            icon: icon({
+              iconSize: [ 25, 41 ],
+              iconAnchor: [ 13, 41 ],
+              iconUrl: './assets/images/marker-icon.png',
+              shadowUrl: './assets/images/marker-shadow.png'
+            })
+          });
 
           this.dataSmallMap.push(dataSmallMap);
           this.layerSmallMap.push(layerSmallMap);
@@ -390,18 +407,22 @@ export class ConsultaComponent implements OnInit {
    * @param value , tipo any
    */
   featuresMap(value: any, check = true) {
-    if (check) {
-      let data: any = {latitud: value.features[0].geometry.coordinates[1], longitud: value.features[0].geometry.coordinates[0]}
-      this.optionsAndLayers(data, 14, this.route, false);
-    }
-    this.buses = [];
-    this.route = [];
-    let dataAndLayers = this.service.featuresMap(value, this.buses, this.layers);
-    this.layers = dataAndLayers[2];
-    let contador = dataAndLayers[0].length;
-    for (let i = 0; i < contador; i++) {
-      this.namesOptions[i] = this.service.showSmallMap(dataAndLayers[0][i], dataAndLayers[1][i])[0];
-      this.names[i] = this.service.showSmallMap(dataAndLayers[0][i], dataAndLayers[1][i])[1];
+    try {
+      if (check) {
+        let data: any = {latitud: value.features[0].geometry.coordinates[1], longitud: value.features[0].geometry.coordinates[0]}
+        this.optionsAndLayers(data, 14, this.route, false);
+      }
+      this.buses = [];
+      this.route = [];
+      let dataAndLayers = this.service.featuresMap(value, this.buses, this.layers);
+      this.layers = dataAndLayers[2];
+      let contador = dataAndLayers[0].length;
+      for (let i = 0; i < contador; i++) {
+        this.namesOptions[i] = this.service.showSmallMap(dataAndLayers[0][i], dataAndLayers[1][i])[0];
+        this.names[i] = this.service.showSmallMap(dataAndLayers[0][i], dataAndLayers[1][i])[1];
+      }
+    } catch (error) {
+      console.log('¡error en la aplicación!');
     }
   }
 
@@ -410,13 +431,17 @@ export class ConsultaComponent implements OnInit {
    * @param value , tipo any
    */
    geometryMap(value: any) {
-    let data: any = {latitud: value.features[0].geometry.coordinates[0][0][1], longitud: value.features[0].geometry.coordinates[0][0][0]}
-    this.optionsAndLayers(data, 14, this.route, false);
-    this.route = [];
-    this.route = this.service.geometryMap(value);
-    this.route = this.route.flatMap((x) => x);
-    this.layers = this.layers;
-    this.queryTitle = 'Recorrido línea: ';
+    try {
+      let data: any = {latitud: value.features[0].geometry.coordinates[0][0][1], longitud: value.features[0].geometry.coordinates[0][0][0]}
+      this.optionsAndLayers(data, 14, this.route, false);
+      this.route = [];
+      this.route = this.service.geometryMap(value);
+      this.route = this.route.flatMap((x) => x);
+      this.layers = this.layers;
+      this.queryTitle = 'Recorrido línea: ';
+    } catch (error) {
+      console.log('¡error en la aplicación!')
+    }
   }
 
   /**
@@ -436,7 +461,11 @@ export class ConsultaComponent implements OnInit {
    * @param event , tipo any, para detectar el evento que fue lanzado.
    */
   showRadioInput(event: any) {
-    this.service.showRadioInput(event);
+    try {
+      this.service.showRadioInput(event);
+    } catch (error) {
+      console.log('¡error desplegando los elementos!');
+    }
   }
 
   /**
@@ -444,7 +473,11 @@ export class ConsultaComponent implements OnInit {
    * @param map , tipo Map, mapa.
    */
   onMapReady(map: Map) {
-    this.service.onMapReady(map, this.route);
+    try {
+      this.service.onMapReady(map, this.route);
+    } catch (error) {
+      console.log('¡error desplegando el mapa!');
+    }
   }
 
   /**
@@ -452,11 +485,15 @@ export class ConsultaComponent implements OnInit {
    * @param data , datos enviados desde la consulta get de la url.
    */
   allStopBus(data: any) {
-    this.queryTitle = 'Paradas de Bus - Todas';
-    this.checkAllStopBus = true;
-    let dataMapOptions = {latitud: 41.3879, longitud: 2.16992};
-    this.optionsAndLayers(dataMapOptions, 11);
-    this.layers = this.service.allStopBus(data);
+    try {
+      this.queryTitle = 'Paradas de Bus - Todas';
+      this.checkAllStopBus = true;
+      let dataMapOptions = {latitud: 41.3879, longitud: 2.16992};
+      this.optionsAndLayers(dataMapOptions, 11);
+      this.layers = this.service.allStopBus(data);
+    } catch (error) {
+      console.log('¡error en la aplicación!');
+    }
   }
 
   /**
@@ -464,18 +501,22 @@ export class ConsultaComponent implements OnInit {
    * @param data , tipo any.
    */
   allStopBusDristrict(data: any) {
-    this.queryTitle = 'Paradas de Bus - Distrito: '+this.district;
-    let dataMapOptions = {latitud: 41.3879, longitud: 2.16992};
-    this.optionsAndLayers(dataMapOptions, 11);
-    this.namesOptions = [];
-    this.names = [];
-    this.buses = [];
-    let dataAndLayers = this.service.allStopBusDristrict(data, this.district, this.buses);
-    this.layers = dataAndLayers[2];
-    let contador = dataAndLayers[0].length;
-    for (let i = 0; i < contador; i++) {
-      this.namesOptions[i] = this.service.showSmallMap(dataAndLayers[0][i], dataAndLayers[1][i])[0];
-      this.names[i] = this.service.showSmallMap(dataAndLayers[0][i], dataAndLayers[1][i])[1];
+    try {
+      this.queryTitle = 'Paradas de Bus - Distrito: '+this.district;
+      let dataMapOptions = {latitud: 41.3879, longitud: 2.16992};
+      this.optionsAndLayers(dataMapOptions, 11);
+      this.namesOptions = [];
+      this.names = [];
+      this.buses = [];
+      let dataAndLayers = this.service.allStopBusDristrict(data, this.district, this.buses);
+      this.layers = dataAndLayers[2];
+      let contador = dataAndLayers[0].length;
+      for (let i = 0; i < contador; i++) {
+        this.namesOptions[i] = this.service.showSmallMap(dataAndLayers[0][i], dataAndLayers[1][i])[0];
+        this.names[i] = this.service.showSmallMap(dataAndLayers[0][i], dataAndLayers[1][i])[1];
+      }
+    } catch (error) {
+      console.log('¡error en la aplicación!');
     }
   }
 
@@ -484,18 +525,23 @@ export class ConsultaComponent implements OnInit {
    * @param value , tipo any.
    */
   private horarios(value: any) {
-    this.queryTitle = 'Horarios';
-    this.options = [];
-    this.layers = [];
-    this.horario = null;
-    let dataMap: any[] = this.service.horarios(value);
-    this.optionsAndLayers(dataMap[2], 16);
-    this.layers.push(marker([dataMap[2].latitud, dataMap[2].longitud]));
-    this.horario = dataMap[3];
-    let dataSmallMap = dataMap[0];
-    let layerSmallMap = dataMap[1];
-    this.namesOptions[0] = this.service.showSmallMap(dataSmallMap[0], layerSmallMap[0])[0];
-    this.names[0] = this.service.showSmallMap(dataSmallMap[0], layerSmallMap[0])[1];
+    console.log(JSON.stringify(value));
+    try {
+      this.queryTitle = 'Horarios';
+      this.options = [];
+      this.layers = [];
+      this.horario = null;
+      let dataMap: any[] = this.service.horarios(value);
+      this.optionsAndLayers(dataMap[2], 16);
+      this.layers.push(marker([dataMap[2].latitud, dataMap[2].longitud]));
+      this.horario = dataMap[3];
+      let dataSmallMap = dataMap[0];
+      let layerSmallMap = dataMap[1];
+      this.namesOptions[0] = this.service.showSmallMap(dataSmallMap[0], layerSmallMap[0])[0];
+      this.names[0] = this.service.showSmallMap(dataSmallMap[0], layerSmallMap[0])[1];
+    } catch (error) {
+      console.log('¡error en la aplicación!');
+    }
   }
 
   /**
@@ -506,18 +552,22 @@ export class ConsultaComponent implements OnInit {
    * @param check, tipo boolean, comprueba si layers tiene que ser inicializado.
    */
   private optionsAndLayers(data: { latitud: any; longitud: any; }, zoom: number, route: any = null, check = true) {
-    this.options = {};
-    this.options = {
-      layers: [
-        tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors'
-        })
-      ],
-      control: route,
-      zoom: zoom,
-      center: latLng([data.latitud, data.longitud])
-    };
-    if (check)
-      this.layers = [];
+    try {
+      this.options = {};
+      this.options = {
+        layers: [
+          tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+          })
+        ],
+        control: route,
+        zoom: zoom,
+        center: latLng([data.latitud, data.longitud])
+      };
+      if (check)
+        this.layers = [];
+    } catch (error) {
+      console.log('¡error en el mapa!');
+    }
   }
 }

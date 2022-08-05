@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { latLng, Map, marker, tileLayer } from 'leaflet';
+import { latLng, Map, marker, tileLayer, icon } from 'leaflet';
 import { Bus } from '../models/Bus';
 import { Horario } from '../models/horario';
 declare let L: any;
@@ -25,7 +25,6 @@ export class ConsultaService {
     } else {
       element.style.display = 'flex';
     }
-
   }
 
   /**
@@ -66,11 +65,16 @@ export class ConsultaService {
    * @returns boolean, si el punto está dentro de la distancia.
    */
    arePointsNear(checkPointLon: number, centerPointLon: number, checkPointLat: number, centerPointLat: number) {
-    var kx = 40000 / 360;
-    var ky = Math.cos(Math.PI * centerPointLat / 180.0) * kx;
-    var dx = Math.abs(centerPointLat - checkPointLat) * ky;
-    var dy = Math.abs(centerPointLon - checkPointLon) * kx;
-    return Math.sqrt(dx * dx + dy * dy) <= 1;
+    try {
+      var kx = 40000 / 360;
+      var ky = Math.cos(Math.PI * centerPointLat / 180.0) * kx;
+      var dx = Math.abs(centerPointLat - checkPointLat) * ky;
+      var dy = Math.abs(centerPointLon - checkPointLon) * kx;
+      return Math.sqrt(dx * dx + dy * dy) <= 1;
+    } catch (error) {
+      throw (error);
+    }
+
   }
 
   /**
@@ -91,7 +95,14 @@ export class ConsultaService {
   allStopBus(data: any) {
     let dataMap: any[] = [];
     data.features.map((bf: any) => {
-      dataMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]])
+      dataMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]], {
+        icon: icon({
+          iconSize: [ 25, 41 ],
+          iconAnchor: [ 13, 41 ],
+          iconUrl: './assets/images/marker-icon.png',
+          shadowUrl: './assets/images/marker-shadow.png'
+        })
+      })
       .bindPopup('Parada: '+bf.properties.NOM_PARADA+'<br/>Distrito: '+bf.properties.NOM_DISTRICTE+'<br/>Dirección: '+bf.properties.ADRECA+'<br><a class="ver" href="/consultar#p'+bf.properties.CODI_PARADA+'">Ver</a>'));
     });
     return dataMap;
@@ -108,12 +119,26 @@ export class ConsultaService {
     data.features.map((bf: any) => {
       let p = bf.properties;
       if (p.NOM_DISTRICTE === district) {
-        dataMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]])
+        dataMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]], {
+          icon: icon({
+            iconSize: [ 25, 41 ],
+            iconAnchor: [ 13, 41 ],
+            iconUrl: './assets/images/marker-icon.png',
+            shadowUrl: './assets/images/marker-shadow.png'
+          })
+        })
         .bindPopup('Parada: '+bf.properties.NOM_PARADA+'<br/>Distrito: '+bf.properties.NOM_DISTRICTE+'<br/>Dirección: '+bf.properties.ADRECA+'<br><a class="ver" href="/consultar#p'+bf.properties.CODI_PARADA+'">Ver</a>'))
 
         buses.push(new Bus(p.ADRECA, p.NOM_LINIA, p.CODI_PARADA, p.NOM_DISTRICTE,
           p.NOM_VIA, p.NOM_PARADA, p.DESTI_SENTIT));
-        layerSmallMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]]));
+        layerSmallMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]], {
+          icon: icon({
+            iconSize: [ 25, 41 ],
+            iconAnchor: [ 13, 41 ],
+            iconUrl: './assets/images/marker-icon.png',
+            shadowUrl: './assets/images/marker-shadow.png'
+          })
+        }));
         dataSmallMap.push({latitud: bf.geometry.coordinates[1],longitud: bf.geometry.coordinates[0]})
       }
     });
@@ -149,12 +174,26 @@ export class ConsultaService {
     let layerSmallMap: any[] = [];
     let dataSmallMap: any[] = [];
     value.features.map((bf: any) => {
-      dataMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]])
+      dataMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]], {
+        icon: icon({
+          iconSize: [ 25, 41 ],
+          iconAnchor: [ 13, 41 ],
+          iconUrl: './assets/images/marker-icon.png',
+          shadowUrl: './assets/images/marker-shadow.png'
+        })
+      })
       .bindPopup('Parada: '+bf.properties.NOM_PARADA+'<br/>Distrito: '+bf.properties.NOM_DISTRICTE+'<br/>Dirección: '+bf.properties.ADRECA+'<br><a class="ver" href="/consultar#p'+bf.properties.CODI_PARADA+'">Ver</a>'))
       let p = bf.properties;
       buses.push(new Bus(p.ADRECA, p.NOM_LINIA, p.CODI_PARADA, p.NOM_DISTRICTE,
         p.NOM_VIA, p.NOM_PARADA, p.DESTI_SENTIT));
-      layerSmallMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]]));
+      layerSmallMap.push(marker([bf.geometry.coordinates[1], bf.geometry.coordinates[0]], {
+        icon: icon({
+          iconSize: [ 25, 41 ],
+          iconAnchor: [ 13, 41 ],
+          iconUrl: './assets/images/marker-icon.png',
+          shadowUrl: './assets/images/marker-shadow.png'
+        })
+      }));
       dataSmallMap.push({latitud: bf.geometry.coordinates[1],longitud: bf.geometry.coordinates[0]})
     });
     layers = dataMap;
@@ -225,7 +264,14 @@ export class ConsultaService {
     let dataSmallMap: any[] = [];
     let layerSmallMap: any[] = [];
     dataSmallMap.push({latitud: data.latitud,longitud: data.longitud});
-    layerSmallMap.push(marker([data.latitud, data.longitud]));
+    layerSmallMap.push(marker([data.latitud, data.longitud], {
+      icon: icon({
+          iconSize: [ 25, 41 ],
+          iconAnchor: [ 13, 41 ],
+          iconUrl: './assets/images/marker-icon.png',
+          shadowUrl: './assets/images/marker-shadow.png'
+        })
+    }));
     let horario: Horario = new Horario(direccion, parada, distrito, via, sentido, diarios, sabado, festivos);
     return [dataSmallMap, layerSmallMap, data, horario];
   }

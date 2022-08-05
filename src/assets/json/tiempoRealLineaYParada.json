@@ -1,0 +1,14 @@
+{
+  "status": "success",
+  "data": {
+    "ibus": [
+      {
+        "routeId": "0761",
+        "text-ca": "imminent",
+        "t-in-s": 100,
+        "destination": "Sant Genís",
+        "t-in-min": 1
+      }
+    ]
+  }
+}
